@@ -15,7 +15,7 @@ This plugin was inspired by the work of "Nicanor Romero Venier" on the plugin: A
 Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wiki/Plugin:-Plugin-Manager)
 or manually using this URL:
 
-    https://github.com/OctoPrint/OctoPrint-ShutdownPrinter/archive/master.zip
+    https://github.com/devildant/OctoPrint-ShutdownPrinter/archive/master.zip
 
 ## Configuration
 
