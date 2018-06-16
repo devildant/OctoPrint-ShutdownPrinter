@@ -15,15 +15,10 @@
 
 #touch body #sidebar_plugin_shutdownprinter > label {
     display: block;
-    height: 50px;
-    line-height: 50px;
     background:#333;
     padding-left: 50px;
-}
-
-#touch body #sidebar_plugin_shutdownprinter > label > input[type="checkbox"] {
-    position: relative;
-    top: 15px;
+	padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 #touch body #sidebar_plugin_shutdownprinter {
