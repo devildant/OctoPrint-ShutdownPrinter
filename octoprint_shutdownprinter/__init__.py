@@ -48,7 +48,7 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                         self._shutdown_printer_enabled = self.lastCheckBoxValue
                 
 	def get_assets(self):
-		return dict(js=["js/shutdownprinter.js"])
+		return dict(js=["js/shutdownprinter.js"],css=["css/shutdownprinter.css"])
 
 	def get_template_configs(self):
 		return [dict(type="sidebar",
