@@ -28,7 +28,7 @@
 
 #touch body #sidebar_plugin_shutdownprinter {
     pointer-events: auto;
-    margin: 0px -45px 0;
-    padding-right: 30px;
-    padding-left: 30px;
+    margin: 0px -30px 0;
+    padding-right: 15px;
+    padding-left: 15px;
 }
