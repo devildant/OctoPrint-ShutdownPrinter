@@ -45,7 +45,7 @@ $(function() {
 			if (counter < 10) {
 				if (document.getElementById("touch") != null && document.getElementById("printer") != null && document.getElementById("printer") != null && document.getElementById("touch").querySelector("#printer").querySelector("#files_wrapper")) {
 					var newParent = document.getElementById("files_wrapper").parentNode;
-					newParent.appendChild(document.getElementById('sidebar_plugin_shutdownprinter_wrapper'));
+					newParent.insertBefore(document.getElementById('sidebar_plugin_shutdownprinter_wrapper'), document.getElementById("files_wrapper"));
 				} else {
 					setTimeout(self.touchUIMoveElement, 1000, self, ++counter);
 				}
