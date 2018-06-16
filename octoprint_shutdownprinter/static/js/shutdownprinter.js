@@ -34,7 +34,28 @@ $(function() {
                 history: false
             }
         };
-
+        
+        //for touch ui
+		self.touchUIMoveElement = function (self, counter) {
+			var hash = window.location.hash;
+			if (hash != "" && hash != "#printer" && hash != "#touch")
+			{
+				return;
+			}
+			if (counter < 10) {
+				if (document.getElementById("touch") != null && document.getElementById("printer") != null && document.getElementById("printer") != null && document.getElementById("touch").querySelector("#printer").querySelector("#files_wrapper")) {
+					var newParent = document.getElementById("files_wrapper").parentNode;
+					newParent.appendChild(document.getElementById('sidebar_plugin_shutdownprinter_wrapper'));
+				} else {
+					setTimeout(self.touchUIMoveElement, 1000, self, ++counter);
+				}
+			}
+		}
+		 //add octoprint event for check finish
+		self.onStartupComplete = function () {
+			self.touchUIMoveElement(self, 0);
+		};
+        
         self.onShutdownPrinterEvent = function() {
             if (self.shutdownprinterEnabled()) {
                 $.ajax({
