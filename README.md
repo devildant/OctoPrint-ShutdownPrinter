@@ -8,7 +8,7 @@ This plugin was inspired by the work of "Nicanor Romero Venier" on the plugin: A
 
 ![Sidebar](https://i.imgur.com/VAGQUA2.jpg)
 
-![Settings](https://i.imgur.com/wlsd965.jpg)
+![Settings](https://i.imgur.com/HXJOWEa.jpg)
 
 ## Setup
 
