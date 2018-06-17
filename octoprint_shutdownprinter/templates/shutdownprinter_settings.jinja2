@@ -19,6 +19,14 @@
 	<div class="control-group">
         <div class="controls">
             <label class="checkbox">
+            <input type="checkbox" data-bind="checked: settings.plugins.shutdownprinter.rememberCheckBox"> Remember the value of "Shutdown Printer after print finishes"
+            </label>
+        </div>
+    </div>
+	  <h4>Events catch</h4>
+	<div class="control-group">
+        <div class="controls">
+            <label class="checkbox">
             <input type="checkbox" data-bind="checked: settings.plugins.shutdownprinter.printFailed"> Event print failed
             </label>
         </div>
@@ -30,11 +38,18 @@
             </label>
         </div>
     </div>
-    <div class="control-group">
+	<h4>Temperature target</h4>
+	<div class="control-group">
         <div class="controls">
             <label class="checkbox">
-            <input type="checkbox" data-bind="checked: settings.plugins.shutdownprinter.rememberCheckBox"> Remember the value of "Shutdown Printer after print finishes"
+            <input type="checkbox" shutdownPrinterTemperatureTarget="true" data-bind="checked: settings.plugins.shutdownprinter.temperatureTarget"> Enable temperature target
             </label>
         </div>
     </div>
+	<div class="control-group">
+		<label class="control-label">{{ _('Temperature in Celsius') }}</label>
+		<div class="controls">
+			<input type="number" min='0' class="input-block-level" data-bind="value: settings.plugins.shutdownprinter.temperatureValue">
+		</div>
+	</div>
 </form>
