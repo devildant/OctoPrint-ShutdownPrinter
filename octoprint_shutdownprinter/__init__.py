@@ -18,18 +18,28 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
 	def __init__(self):
                 self.url = ""
                 self.abortTimeout = 0
+                self.temperatureValue = 0
+                self.temperatureTarget = False
                 self.printFailed = False
                 self.printCancelled = False
                 self.rememberCheckBox = False
                 self.lastCheckBoxValue = False
                 self._shutdown_printer_enabled = False
                 self._timeout_value = None
-		self._abort_timer = None
+                self._abort_timer = None
+                self._abort_timer_temp = None
 
         def initialize(self):
                 self.url = self._settings.get(["url"])
                 self._logger.debug("Shutdown Printer url: %s" % self.url)
+		
+						
+                self.temperatureValue = self._settings.get_int(["temperatureValue"])
+                self._logger.debug("Shutdown Printer temperatureValue: %s" % self.temperatureValue)
 				
+                self.temperatureTarget = self._settings.get_boolean(["temperatureTarget"])
+                self._logger.debug("Shutdown Printer temperatureTarget: %s" % self.temperatureTarget)
+
                 self.abortTimeout = self._settings.get_int(["abortTimeout"])
                 self._logger.debug("Shutdown Printer abortTimeout: %s" % self.abortTimeout)
 
@@ -75,6 +85,8 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                         if self._abort_timer is not None:
                                 self._abort_timer.cancel()
                                 self._abort_timer = None
+                                self._abort_timer_temp.cancel()
+                                self._abort_timer_temp = None
                         self._timeout_value = None
                         self._logger.info("Shutdown Printer aborted.")
                 
@@ -101,18 +113,50 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                         return
                 
                 if event == Events.PRINT_DONE:
-                        self._timer_start()
+                        self._temperature_target()
                         return
                 
                 elif event == Events.PRINT_CANCELLED and self.printCancelled:
-                        self._timer_start()
+                        self._temperature_target()
                         return
                 
                 elif event == Events.PRINT_FAILED and self.printFailed:
-                        self._timer_start()
+                        self._temperature_target()
                         return
                 else:
                         return
+
+        def _temperature_target(self):
+                if self._abort_timer_temp is not None:
+                        return
+                self._logger.info("toto A")
+                if self.temperatureTarget:
+                        self._logger.info("toto B")
+                        self._abort_timer_temp = RepeatedTimer(2, self._temperature_task)
+                        self._abort_timer_temp.start()
+                else:
+                        self._logger.info("toto C")
+                        self._timer_start()
+
+        
+        def _temperature_task(self):
+                self._temp = self._printer.get_current_temperatures()
+                self._logger.info("toto 0")
+                self._logger.info(self._temp["tool0"]["actual"])
+                self._logger.info(self.temperatureValue)
+                tester = 0;
+                number = 0;
+                for tool in self._temp.keys():
+                        if not tool == "bed":
+                                if self._temp[tool]["actual"] <= self.temperatureValue:
+                                        tester += 1
+                                number += 1
+                if tester == number:
+                        self._logger.info("toto 1")
+                        self._logger.info(self._temp["tool0"]["actual"])
+                        self._abort_timer_temp.cancel()
+                        self._abort_timer_temp = None
+                        self._timer_start()
 
         def _timer_start(self):
                 if self._abort_timer is not None:
@@ -153,6 +197,8 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                 octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 
                 self.url = self._settings.get(["url"])
+                self.temperatureValue = self._settings.get_int(["temperatureValue"])
+                self.temperatureTarget = self._settings.get_int(["temperatureTarget"])
                 self.printFailed = self._settings.get_boolean(["printFailed"])
                 self.printCancelled = self._settings.get_boolean(["printCancelled"])
                 self.abortTimeout = self._settings.get_int(["abortTimeout"])
