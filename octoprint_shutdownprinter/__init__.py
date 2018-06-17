@@ -31,29 +31,29 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
 
         def initialize(self):
                 self.url = self._settings.get(["url"])
-                self._logger.debug("Shutdown Printer url: %s" % self.url)
+                self._logger.debug("url: %s" % self.url)
 		
 						
                 self.temperatureValue = self._settings.get_int(["temperatureValue"])
-                self._logger.debug("Shutdown Printer temperatureValue: %s" % self.temperatureValue)
+                self._logger.debug("temperatureValue: %s" % self.temperatureValue)
 				
                 self.temperatureTarget = self._settings.get_boolean(["temperatureTarget"])
-                self._logger.debug("Shutdown Printer temperatureTarget: %s" % self.temperatureTarget)
+                self._logger.debug("temperatureTarget: %s" % self.temperatureTarget)
 
                 self.abortTimeout = self._settings.get_int(["abortTimeout"])
-                self._logger.debug("Shutdown Printer abortTimeout: %s" % self.abortTimeout)
+                self._logger.debug("abortTimeout: %s" % self.abortTimeout)
 
                 self.printFailed = self._settings.get_boolean(["printFailed"])
-                self._logger.debug("Shutdown Printer printFailed: %s" % self.printFailed)
+                self._logger.debug("printFailed: %s" % self.printFailed)
 
                 self.printCancelled = self._settings.get_boolean(["printCancelled"])
-                self._logger.debug("Shutdown Printer printCancelled: %s" % self.printCancelled)
+                self._logger.debug("printCancelled: %s" % self.printCancelled)
 
                 self.rememberCheckBox = self._settings.get_boolean(["rememberCheckBox"])
-                self._logger.debug("Shutdown Printer rememberCheckBox: %s" % self.rememberCheckBox)
+                self._logger.debug("rememberCheckBox: %s" % self.rememberCheckBox)
 
                 self.lastCheckBoxValue = self._settings.get_boolean(["lastCheckBoxValue"])
-                self._logger.debug("Shutdown Printer lastCheckBoxValue: %s" % self.lastCheckBoxValue)
+                self._logger.debug("lastCheckBoxValue: %s" % self.lastCheckBoxValue)
                 if self.rememberCheckBox:
                         self._shutdown_printer_enabled = self.lastCheckBoxValue
                 
@@ -88,7 +88,7 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                                 self._abort_timer_temp.cancel()
                                 self._abort_timer_temp = None
                         self._timeout_value = None
-                        self._logger.info("Shutdown Printer aborted.")
+                        self._logger.info("Shutdown aborted.")
                 
                 if command == "enable" or command == "disable":
                         self.lastCheckBoxValue = self._shutdown_printer_enabled
@@ -129,21 +129,15 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
         def _temperature_target(self):
                 if self._abort_timer_temp is not None:
                         return
-                self._logger.info("toto A")
                 if self.temperatureTarget:
-                        self._logger.info("toto B")
                         self._abort_timer_temp = RepeatedTimer(2, self._temperature_task)
                         self._abort_timer_temp.start()
                 else:
-                        self._logger.info("toto C")
                         self._timer_start()
 
         
         def _temperature_task(self):
                 self._temp = self._printer.get_current_temperatures()
-                self._logger.info("toto 0")
-                self._logger.info(self._temp["tool0"]["actual"])
-                self._logger.info(self.temperatureValue)
                 tester = 0;
                 number = 0;
                 for tool in self._temp.keys():
@@ -152,8 +146,6 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                                         tester += 1
                                 number += 1
                 if tester == number:
-                        self._logger.info("toto 1")
-                        self._logger.info(self._temp["tool0"]["actual"])
                         self._abort_timer_temp.cancel()
                         self._abort_timer_temp = None
                         self._timer_start()
