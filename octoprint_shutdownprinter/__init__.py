@@ -205,7 +205,7 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
 
                         # version check: github repository
                         type="github_release",
-                        user="OctoPrint",
+                        user="devildant",
                         repo="OctoPrint-ShutdownPrinter",
                         current=self._plugin_version,
 
