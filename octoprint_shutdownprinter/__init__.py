@@ -210,7 +210,7 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                         current=self._plugin_version,
 
                         # update method: pip w/ dependency links
-                        pip="https://github.com/OctoPrint/OctoPrint-ShutdownPrinter/archive/{target_version}.zip"
+                        pip="https://github.com/devildant/OctoPrint-ShutdownPrinter/archive/{target_version}.zip"
                 )
         )
 
