@@ -21,4 +21,5 @@ or manually using this URL:
 
 For the plugin to work, the OctoPrint-TPLinkSmartplug and OctoPrint-Tasmota plugin must be installed
 https://plugins.octoprint.org/plugins/tplinksmartplug/
+
 https://plugins.octoprint.org/plugins/tasmota/
