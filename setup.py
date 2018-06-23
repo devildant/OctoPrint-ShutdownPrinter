@@ -27,7 +27,7 @@ plugin_author = "devildant"
 plugin_author_email = ""
 
 # The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
-plugin_url = "https://github.com/OctoPrint/OctoPrint-ShutdownPrinter"
+plugin_url = "https://github.com/devildant/OctoPrint-ShutdownPrinter"
 
 # The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
 plugin_license = "AGPLv3"
