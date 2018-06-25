@@ -31,10 +31,11 @@ exemple : M81 192.168.1.2
 ## Mode API
 the plugin will call specifique API after print finish
 exemple for tplink : 
-api key (key octoprint) : AAAAAAAAAAAAAAAA
+```api key (key octoprint) : AAAAAAAAAAAAAAAA
 Plugin ID : tplinksmartplug
 Port : 5000
 JSON : {"command": "turnOff", "ip": "192.168.1.43" }
+```
 
 NB : do not forget to put the API key (octoprint / settings / API)
 
