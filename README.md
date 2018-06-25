@@ -24,6 +24,9 @@ https://plugins.octoprint.org/plugins/tplinksmartplug/
 
 https://plugins.octoprint.org/plugins/tasmota/
 
+## Compatibility
+this plugin is compatible with any plugin monitoring the GCODE M81, an API options has been added to allow compatibility with other plugins via their API
+
 ## Mode GCODE
 the plugin will send a gcode after print finish with specifique parameter
 exemple : M81 192.168.1.2
