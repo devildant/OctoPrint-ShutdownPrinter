@@ -3,8 +3,37 @@ $(function() {
         var self = this;
 
         self.loginState = parameters[0];
+		
         self.shutdownprinterEnabled = ko.observable();
-
+		
+		self.eventChangeGCODE =  function () {
+			$("#shutdownprinter_mode_shutdown_gcode").on("change", function () {
+				if ($(this).prop("checked") == true)
+				{
+					if ($("#shutdownprinter_mode_shutdown_api").prop("checked") == true)
+					{
+						$("#shutdownprinter_mode_shutdown_api").unbind("change");
+						$("#shutdownprinter_mode_shutdown_api").trigger("click");
+					}
+					self.eventChangeAPI();
+				}
+			})
+		}
+		self.eventChangeAPI =  function () {
+				$("#shutdownprinter_mode_shutdown_api").on("change", function () {
+				if ($(this).prop("checked") == true)
+				{
+					if ($("#shutdownprinter_mode_shutdown_gcode").prop("checked") == true)
+					{
+						$("#shutdownprinter_mode_shutdown_gcode").unbind("change");
+						$("#shutdownprinter_mode_shutdown_gcode").trigger("click");
+					}
+					self.eventChangeGCODE();
+				}
+			})
+		}
+		self.eventChangeGCODE();
+		self.eventChangeAPI();
         // Hack to remove automatically added Cancel button
         // See https://github.com/sciactive/pnotify/issues/141
         PNotify.prototype.options.confirm.buttons = [];

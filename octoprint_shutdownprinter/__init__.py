@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+import requests
 import octoprint.plugin
 from octoprint.server import user_permission
 from octoprint.util import RepeatedTimer
@@ -8,15 +9,21 @@ from octoprint.events import eventManager, Events
 from flask import make_response
 import time
 
-class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
+class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 							  octoprint.plugin.AssetPlugin,
+                              octoprint.plugin.TemplatePlugin,
 							  octoprint.plugin.SimpleApiPlugin,
 							  octoprint.plugin.EventHandlerPlugin,
-							  octoprint.plugin.SettingsPlugin,
 							  octoprint.plugin.StartupPlugin):
 
 	def __init__(self):
                 self.url = ""
+                self._mode_shutdown_gcode = True
+                self._mode_shutdown_api = False
+                self.api_key_plugin = ""
+                self.api_json_command = ""
+                self.api_plugin_name = ""
+                self.api_plugin_port = 5000
                 self.abortTimeout = 0
                 self.temperatureValue = 0
                 self.temperatureTarget = False
@@ -24,7 +31,7 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                 self.printCancelled = False
                 self.rememberCheckBox = False
                 self.lastCheckBoxValue = False
-                self._shutdown_printer_enabled = False
+                self._shutdown_printer_enabled = True
                 self._timeout_value = None
                 self._abort_timer = None
                 self._abort_timer_temp = None
@@ -32,8 +39,25 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
         def initialize(self):
                 self.url = self._settings.get(["url"])
                 self._logger.debug("url: %s" % self.url)
+				
+                self.api_key_plugin = self._settings.get(["api_key_plugin"])
+                self._logger.debug("api_key_plugin: %s" % self.api_key_plugin)
 		
+                self._mode_shutdown_gcode = self._settings.get_boolean(["_mode_shutdown_gcode"])
+                self._logger.debug("_mode_shutdown_gcode: %s" % self._mode_shutdown_gcode)
+		
+                self._mode_shutdown_api = self._settings.get_boolean(["_mode_shutdown_api"])
+                self._logger.debug("_mode_shutdown_api: %s" % self._mode_shutdown_api)
+				
+                self.api_json_command = self._settings.get(["api_json_command"])
+                self._logger.debug("api_json_command: %s" % self.api_json_command)
+				
+                self.api_plugin_name = self._settings.get(["api_plugin_name"])
+                self._logger.debug("api_plugin_name: %s" % self.api_plugin_name)
 						
+                self.api_plugin_port = self._settings.get_int(["api_plugin_port"])
+                self._logger.debug("api_plugin_port: %s" % self.api_plugin_port)
+				
                 self.temperatureValue = self._settings.get_int(["temperatureValue"])
                 self._logger.debug("temperatureValue: %s" % self.temperatureValue)
 				
@@ -172,13 +196,34 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                                 self._abort_timer = None
                         self._shutdown_printer()
 
-	def _shutdown_printer(self):
-		self._printer.commands("M81 " + self.url)
-		self._logger.info("Shutting down printer with command: M81 " + self.url)
+        def _shutdown_printer(self):
+                self._logger.info("_mode_shutdown_gcode: %s" % self._mode_shutdown_gcode)
+                if self._mode_shutdown_gcode == True:
+                        self._shutdown_printer_by_gcode()
+                else:
+                        self._shutdown_printer_by_API()
+
+        def _shutdown_printer_by_API(self):
+                url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
+                headers = {'Content-Type': 'application/json', 'X-Api-Key' : self.api_key_plugin}
+                data = self.api_json_command
+                response = requests.post(url, headers=headers, data=data, timeout=0.001)
+                self._logger.info("Shutting down printer with API")
+
+        def _shutdown_printer_by_gcode(self):
+		        self._printer.commands("M81 " + self.url)
+		        self._logger.info("Shutting down printer with command: M81 " + self.url)
 
         def get_settings_defaults(self):
                 return dict(
+                        url = "",
+                        api_key_plugin = "",
                         abortTimeout = 30,
+                        _mode_shutdown_gcode = True,
+                        _mode_shutdown_api = False,
+                        api_plugin_port = 5000,
+                        temperatureValue = 110,
+                        _shutdown_printer_enabled = True,
                         printFailed = False,
                         printCancelled = False,
                         rememberCheckBox = False,
@@ -189,6 +234,14 @@ class shutdownprinterPlugin(octoprint.plugin.TemplatePlugin,
                 octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 
                 self.url = self._settings.get(["url"])
+                self.api_key_plugin = self._settings.get(["api_key_plugin"])
+                self._mode_shutdown_gcode = self._settings.get_boolean(["_mode_shutdown_gcode"])
+                self._logger.info("_mode_shutdown_gcode1: %s" % self._mode_shutdown_gcode)
+                self._mode_shutdown_api = self._settings.get_boolean(["_mode_shutdown_api"])
+                self._logger.info("_mode_shutdown_gcode2: %s" % self._mode_shutdown_gcode)
+                self.api_json_command = self._settings.get(["api_json_command"])
+                self.api_plugin_name = self._settings.get(["api_plugin_name"])
+                self.api_plugin_port = self._settings.get_int(["api_plugin_port"])
                 self.temperatureValue = self._settings.get_int(["temperatureValue"])
                 self.temperatureTarget = self._settings.get_int(["temperatureTarget"])
                 self.printFailed = self._settings.get_boolean(["printFailed"])
