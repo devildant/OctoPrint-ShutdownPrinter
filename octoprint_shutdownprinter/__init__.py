@@ -190,6 +190,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
                 self._timeout_value -= 1
                 self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
+                if self._printer.is_printing():
+                        self._timeout_value = 0
+                        self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
+                        self._abort_timer.cancel()
+                        self._abort_timer = None
+                        return
                 if self._timeout_value <= 0:
                         if self._abort_timer is not None:
                                 self._abort_timer.cancel()
