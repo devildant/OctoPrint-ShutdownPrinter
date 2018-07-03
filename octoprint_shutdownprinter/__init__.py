@@ -161,6 +161,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
         
         def _temperature_task(self):
+                if self._printer.is_printing():
+                        self._abort_timer_temp.cancel()
+                        self._abort_timer_temp = None
+                        return
                 self._temp = self._printer.get_current_temperatures()
                 tester = 0;
                 number = 0;
