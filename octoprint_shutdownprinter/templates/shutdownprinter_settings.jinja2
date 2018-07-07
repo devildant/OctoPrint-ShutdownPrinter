@@ -15,6 +15,12 @@
             <input type="text" class="input-block-level" data-bind="value: settings.plugins.shutdownprinter.url">
         </div>
     </div>
+	<div class="control-group">
+        <div class="controls">
+            <button id="tester_shutdownprinter_gcode" type="button" class="btn btn-primary pull-right"><i class="fa fa-spinner fa-spin" data-bind="visible: sending" style="display: none;"></i>Test</button>
+        </div>
+    </div>
+	
 	<hr>
 	<h5>Mode API</h5>
 	<div class="control-group">
@@ -54,6 +60,53 @@
         <label class="control-label">JSON</label>
         <div class="controls">
             <textarea rows="4" class="block" data-bind="value: settings.plugins.shutdownprinter.api_json_command"></textarea>
+        </div>
+    </div>
+	<div class="control-group">
+        <div class="controls">
+            <button id="tester_shutdownprinter_api" type="button" class="btn btn-primary pull-right"><i class="fa fa-spinner fa-spin" data-bind="visible: sending" style="display: none;"></i>Test</button>
+        </div>
+    </div>
+	<hr>
+	<h5>Mode API Custom</h5>
+	<div class="control-group">
+		<div class="controls">
+			<label class="checkbox">
+			<input type="checkbox" id="shutdownprinter_mode_shutdown_api_custom" data-bind="checked: settings.plugins.shutdownprinter._mode_shutdown_api_custom">activate this mode
+			</label>
+		</div>
+	</div>
+	<div class="control-group">
+		<div class="controls">
+			<label class="checkbox">
+			<input type="checkbox"  id="shutdownprinter_api_custom_GET" data-bind="checked: settings.plugins.shutdownprinter.api_custom_GET">GET
+			</label>
+			<label class="checkbox">
+			<input type="checkbox"  id="shutdownprinter_api_custom_POST" data-bind="checked: settings.plugins.shutdownprinter.api_custom_POST">POST
+			</label>
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">{{ _('URL') }}</label>
+		<div class="controls">
+				<input type="text"  class="input-block-level" data-bind="value: settings.plugins.shutdownprinter.api_custom_url">
+		</div>
+	</div>
+	<div class="control-group">
+        <label class="control-label">header (json format)</label>
+        <div class="controls">
+            <textarea rows="4" class="block" data-bind="value: settings.plugins.shutdownprinter.api_custom_json_header"></textarea>
+        </div>
+    </div>
+	<div class="control-group">
+        <label class="control-label">body</label>
+        <div class="controls">
+            <textarea rows="4" class="block" data-bind="value: settings.plugins.shutdownprinter.api_custom_body"></textarea>
+        </div>
+    </div>
+	<div class="control-group">
+        <div class="controls">
+            <button id="tester_shutdownprinter_api_custom" type="button" class="btn btn-primary pull-right"><i class="fa fa-spinner fa-spin" data-bind="visible: sending" style="display: none;"></i>Test</button>
         </div>
     </div>
 	<hr>

@@ -3,37 +3,104 @@ $(function() {
         var self = this;
 
         self.loginState = parameters[0];
+        self.settings = parameters[1];
 		
         self.shutdownprinterEnabled = ko.observable();
 		
-		self.eventChangeGCODE =  function () {
-			$("#shutdownprinter_mode_shutdown_gcode").on("change", function () {
+		self.eventChangeCheckToRadio =  function (id, listOff) {
+				$(id).on("change", function () {
 				if ($(this).prop("checked") == true)
 				{
-					if ($("#shutdownprinter_mode_shutdown_api").prop("checked") == true)
-					{
-						$("#shutdownprinter_mode_shutdown_api").unbind("change");
-						$("#shutdownprinter_mode_shutdown_api").trigger("click");
-					}
-					self.eventChangeAPI();
+					listOff.forEach(function(element) {
+						if (id != element.id)
+						{
+							if ($(element.id).prop("checked") == true)
+							{
+								$(element.id).unbind("change");
+								$(element.id).trigger("click");
+								self.eventChangeCheckToRadio(element.id, listOff);
+							}
+						}
+					});
 				}
 			})
 		}
-		self.eventChangeAPI =  function () {
-				$("#shutdownprinter_mode_shutdown_api").on("change", function () {
-				if ($(this).prop("checked") == true)
-				{
-					if ($("#shutdownprinter_mode_shutdown_gcode").prop("checked") == true)
-					{
-						$("#shutdownprinter_mode_shutdown_gcode").unbind("change");
-						$("#shutdownprinter_mode_shutdown_gcode").trigger("click");
-					}
-					self.eventChangeGCODE();
-				}
-			})
-		}
-		self.eventChangeGCODE();
-		self.eventChangeAPI();
+		
+		$("#tester_shutdownprinter_gcode").on("click", function () {
+			self.settings.saveData();
+			$(this).children("i").show();
+			setTimeout(function (current) {
+			$.ajax({
+                url: API_BASEURL + "plugin/shutdownprinter",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "shutdown",
+					mode: 1
+                }),
+                contentType: "application/json; charset=UTF-8"
+            }).done(function() {
+				current.children("i").hide();
+			});
+			
+			}, 1000, $(this));
+			 
+		});		
+		$("#tester_shutdownprinter_api").on("click", function () {
+			self.settings.saveData();
+			$(this).children("i").show();
+			setTimeout(function (current) {
+			$.ajax({
+                url: API_BASEURL + "plugin/shutdownprinter",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "shutdown",
+					mode: 2
+                }),
+                contentType: "application/json; charset=UTF-8"
+            }).done(function() {
+				current.children("i").hide();
+			});
+			}, 1000, $(this));
+			
+		});	
+		
+		$("#tester_shutdownprinter_api_custom").on("click", function () {
+			self.settings.saveData();
+			$(this).children("i").show();
+			setTimeout(function (current) {
+			$.ajax({
+                url: API_BASEURL + "plugin/shutdownprinter",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "shutdown",
+					mode: 3
+                }),
+                contentType: "application/json; charset=UTF-8"
+            }).done(function() {
+				current.children("i").hide();
+			});
+			}, 1000, $(this));
+			
+		});
+		self.listOffMode = [
+			{"id" : "#shutdownprinter_mode_shutdown_gcode"},
+			{"id" : "#shutdownprinter_mode_shutdown_api"},
+			{"id" : "#shutdownprinter_mode_shutdown_api_custom"},
+		]
+		self.listOffHTTPMethode = [
+			{"id" : "#shutdownprinter_api_custom_GET"},
+			{"id" : "#shutdownprinter_api_custom_POST"}
+		]
+		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_gcode", self.listOffMode);
+		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_api", self.listOffMode);
+		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_api_custom", self.listOffMode);
+		
+		self.eventChangeCheckToRadio("#shutdownprinter_api_custom_GET", self.listOffHTTPMethode);
+		self.eventChangeCheckToRadio("#shutdownprinter_api_custom_POST", self.listOffHTTPMethode);
+		
         // Hack to remove automatically added Cancel button
         // See https://github.com/sciactive/pnotify/issues/141
         PNotify.prototype.options.confirm.buttons = [];
@@ -85,6 +152,18 @@ $(function() {
 			self.touchUIMoveElement(self, 0);
 		};
         
+		self.onEventPrinterStateChanged = function(payload) {
+        			if (payload.state_id == "PRINTING" || payload.state_id == "PAUSED"){
+        				$("#tester_shutdownprinter_gcode").prop("disabled", true);
+        				$("#tester_shutdownprinter_api").prop("disabled", true);
+        				$("#tester_shutdownprinter_api_custom").prop("disabled", true);
+        			} else {
+        				$("#tester_shutdownprinter_gcode").prop("disabled", false);
+        				$("#tester_shutdownprinter_api").prop("disabled", false);
+        				$("#tester_shutdownprinter_api_custom").prop("disabled", false);
+        			}
+        		}
+		
         self.onShutdownPrinterEvent = function() {
             if (self.shutdownprinterEnabled()) {
                 $.ajax({
@@ -153,7 +232,7 @@ $(function() {
 
     OCTOPRINT_VIEWMODELS.push([
         ShutdownPrinterViewModel,
-        ["loginStateViewModel"],
+        ["loginStateViewModel", "settingsViewModel"],
         document.getElementById("sidebar_plugin_shutdownprinter")
     ]);
 });

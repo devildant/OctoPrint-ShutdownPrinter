@@ -8,7 +8,9 @@ This plugin was inspired by the work of "Nicanor Romero Venier" on the plugin: A
 
 ![Sidebar](https://i.imgur.com/VAGQUA2.jpg)
 
-![Settings](https://i.imgur.com/BunTJ6P.jpg)
+![Settings](https://i.imgur.com/gC6dINZ.jpg)
+![Settings](https://i.imgur.com/qjxYu9f.jpg)
+![Settings](https://i.imgur.com/JeQ4knS.jpg)
 
 ## Setup
 
@@ -32,12 +34,22 @@ the plugin will send a gcode after print finish with specifique parameter
 exemple : M81 192.168.1.2
 
 ## Mode API
-the plugin will call specifique API after print finish
+the plugin will call specifique API (octoprint plugin) after print finish
 exemple for tplink : 
 ```api key (key octoprint) : AAAAAAAAAAAAAAAA
 Plugin ID : tplinksmartplug
 Port : 5000
 JSON : {"command": "turnOff", "ip": "192.168.1.43" }
+```
+
+
+## Mode API Custom
+the plugin will call specifique API (external) after print finish
+exemple for tplink : 
+```POST : enable
+URL : http://127.0.0.1:5000/api/plugin/tplinksmartplug
+header (json format) : {"Content-Type": "application/json", "X-Api-Key" : "AAAAAAAAAAAAAAAA"}
+body : {"command": "turnOff", "ip": "192.168.1.43" }
 ```
 
 NB : do not forget to put the API key (octoprint / settings / API)

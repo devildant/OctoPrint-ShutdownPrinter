@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+import json
 import requests
 import octoprint.plugin
 from octoprint.server import user_permission
@@ -20,6 +21,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self.url = ""
                 self._mode_shutdown_gcode = True
                 self._mode_shutdown_api = False
+                self._mode_shutdown_api_custom = False
+                self.api_custom_GET = False
+                self.api_custom_POST = False
+                self.api_custom_url = ""
+                self.api_custom_json_header = ""
+                self.api_custom_body = ""
                 self.api_key_plugin = ""
                 self.api_json_command = ""
                 self.api_plugin_name = ""
@@ -47,8 +54,26 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self._logger.debug("_mode_shutdown_gcode: %s" % self._mode_shutdown_gcode)
 		
                 self._mode_shutdown_api = self._settings.get_boolean(["_mode_shutdown_api"])
-                self._logger.debug("_mode_shutdown_api: %s" % self._mode_shutdown_api)
+                self._logger.debug("_mode_shutdown_api: %s" % self._mode_shutdown_api)	
 				
+                self._mode_shutdown_api_custom = self._settings.get_boolean(["_mode_shutdown_api_custom"])
+                self._logger.debug("_mode_shutdown_api_custom: %s" % self._mode_shutdown_api_custom)
+								
+                self.api_custom_POST = self._settings.get_boolean(["api_custom_POST"])
+                self._logger.debug("api_custom_POST: %s" % self.api_custom_POST)
+								
+                self.api_custom_GET = self._settings.get_boolean(["api_custom_GET"])
+                self._logger.debug("api_custom_GET: %s" % self.api_custom_GET)
+				
+                self.api_custom_url = self._settings.get(["api_custom_url"])
+                self._logger.debug("api_custom_url: %s" % self.api_custom_url)
+								
+                self.api_custom_json_header = self._settings.get(["api_custom_json_header"])
+                self._logger.debug("api_custom_json_header: %s" % self.api_custom_json_header)
+								
+                self.api_custom_body = self._settings.get(["api_custom_body"])
+                self._logger.debug("api_custom_body: %s" % self.api_custom_body)
+								
                 self.api_json_command = self._settings.get(["api_json_command"])
                 self._logger.debug("api_json_command: %s" % self.api_json_command)
 				
@@ -95,6 +120,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	def get_api_commands(self):
 		return dict(enable=[],
 			disable=[],
+			shutdown=["mode"],
 			abort=[])
 
 	def on_api_command(self, command, data):
@@ -105,6 +131,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         self._shutdown_printer_enabled = True
                 elif command == "disable":
                         self._shutdown_printer_enabled = False
+                elif command == "shutdown":
+                        self._shutdown_printer_API_CMD( data["mode"]) #mode 1 = gcode, mode 2 = api, mode 3 = custom api
                 elif command == "abort":
                         if self._abort_timer is not None:
                                 self._abort_timer.cancel()
@@ -203,18 +231,56 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         self._shutdown_printer()
 
         def _shutdown_printer(self):
-                self._logger.info("_mode_shutdown_gcode: %s" % self._mode_shutdown_gcode)
                 if self._mode_shutdown_gcode == True:
                         self._shutdown_printer_by_gcode()
-                else:
+                elif self._mode_shutdown_api == True:
                         self._shutdown_printer_by_API()
+                else:
+                        self._shutdown_printer_by_API_custom()
+
+        def _shutdown_printer_API_CMD(self, mode):
+                if mode == 1:
+                        self._shutdown_printer_by_gcode()
+                elif mode == 2:
+                        self._shutdown_printer_by_API()
+                elif mode == 3:
+                        self._shutdown_printer_by_API_custom()
 
         def _shutdown_printer_by_API(self):
                 url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
                 headers = {'Content-Type': 'application/json', 'X-Api-Key' : self.api_key_plugin}
                 data = self.api_json_command
-                response = requests.post(url, headers=headers, data=data, timeout=0.001)
                 self._logger.info("Shutting down printer with API")
+                try:
+                        response = requests.post(url, headers=headers, data=data, stream=True, timeout=0.001)
+                except requests.exceptions.Timeout:
+                        return
+                except Exception as e:
+                        self._logger.error("Failed to connect to call api: %s" % e.message)
+                        return
+
+
+        def _shutdown_printer_by_API_custom(self):
+                headers = json.loads(self.api_custom_json_header)
+                if self.api_custom_POST == True:
+                        data = self.api_custom_body
+                        self._logger.info("Shutting down printer with API custom (POST)")
+                        try:
+                                response = requests.post(self.api_custom_url, headers=headers, data=data, stream=True, timeout=0.001)
+                        except requests.exceptions.Timeout:
+                                return
+                        except Exception as e:
+                                self._logger.error("Failed to connect to call api: %s" % e.message)
+                                return
+                elif self.api_custom_GET == True:
+                        self._logger.info("Shutting down printer with API custom (GET)")
+                        try:
+                                response = requests.post(self.api_custom_url, headers=headers, stream=True, timeout=0.001)
+                        except requests.exceptions.Timeout:
+                                return
+                        except Exception as e:
+                                self._logger.error("Failed to connect to call api: %s" % e.message)
+                                return
 
         def _shutdown_printer_by_gcode(self):
 		        self._printer.commands("M81 " + self.url)
@@ -227,6 +293,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         abortTimeout = 30,
                         _mode_shutdown_gcode = True,
                         _mode_shutdown_api = False,
+                        _mode_shutdown_api_custom = False,
+                        api_custom_POST = False,
+                        api_custom_GET = False,
+                        api_custom_url = "",
+                        api_custom_json_header = "",
+                        api_custom_body = "",
                         api_plugin_port = 5000,
                         temperatureValue = 110,
                         _shutdown_printer_enabled = True,
@@ -242,9 +314,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self.url = self._settings.get(["url"])
                 self.api_key_plugin = self._settings.get(["api_key_plugin"])
                 self._mode_shutdown_gcode = self._settings.get_boolean(["_mode_shutdown_gcode"])
-                self._logger.info("_mode_shutdown_gcode1: %s" % self._mode_shutdown_gcode)
                 self._mode_shutdown_api = self._settings.get_boolean(["_mode_shutdown_api"])
-                self._logger.info("_mode_shutdown_gcode2: %s" % self._mode_shutdown_gcode)
+                self._mode_shutdown_api_custom = self._settings.get_boolean(["_mode_shutdown_api_custom"])
+                self.api_custom_POST = self._settings.get_boolean(["api_custom_POST"])
+                self.api_custom_GET = self._settings.get_boolean(["api_custom_GET"])
+                self.api_custom_url = self._settings.get(["api_custom_url"])
+                self.api_custom_json_header = self._settings.get(["api_custom_json_header"])
+                self.api_custom_body = self._settings.get(["api_custom_body"])
                 self.api_json_command = self._settings.get(["api_json_command"])
                 self.api_plugin_name = self._settings.get(["api_plugin_name"])
                 self.api_plugin_port = self._settings.get_int(["api_plugin_port"])
