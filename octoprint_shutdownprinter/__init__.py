@@ -265,7 +265,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 
         def _shutdown_printer_by_API_custom(self):
-                headers = json.loads(self.api_custom_json_header)
+                headers = {}
+                if self.api_custom_json_header != "":
+                        headers = json.loads(self.api_custom_json_header)
                 if self.api_custom_POST == True:
                         data = self.api_custom_body
                         self._logger.info("Shutting down printer with API custom (POST)")
