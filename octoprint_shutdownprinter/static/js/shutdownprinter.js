@@ -4,8 +4,16 @@ $(function() {
 
         self.loginState = parameters[0];
         self.settings = parameters[1];
+        self.printer = parameters[2];
+		
 		
         self.shutdownprinterEnabled = ko.observable();
+		
+		self.testButtonChangeStatus = function (stat) {
+			$("#tester_shutdownprinter_gcode").prop("disabled", stat);
+			$("#tester_shutdownprinter_api").prop("disabled", stat);
+			$("#tester_shutdownprinter_api_custom").prop("disabled", stat);
+		}
 		
 		self.eventChangeCheckToRadio =  function (id, listOff) {
 				$(id).on("change", function () {
@@ -150,17 +158,19 @@ $(function() {
 		 //add octoprint event for check finish
 		self.onStartupComplete = function () {
 			self.touchUIMoveElement(self, 0);
+			if (self.printer.isPrinting())
+			{
+				self.testButtonChangeStatus(true);
+			} else {
+				self.testButtonChangeStatus(false);
+			}
 		};
         
 		self.onEventPrinterStateChanged = function(payload) {
         			if (payload.state_id == "PRINTING" || payload.state_id == "PAUSED"){
-        				$("#tester_shutdownprinter_gcode").prop("disabled", true);
-        				$("#tester_shutdownprinter_api").prop("disabled", true);
-        				$("#tester_shutdownprinter_api_custom").prop("disabled", true);
+        				self.testButtonChangeStatus(true);
         			} else {
-        				$("#tester_shutdownprinter_gcode").prop("disabled", false);
-        				$("#tester_shutdownprinter_api").prop("disabled", false);
-        				$("#tester_shutdownprinter_api_custom").prop("disabled", false);
+        				self.testButtonChangeStatus(false);
         			}
         		}
 		
@@ -232,7 +242,7 @@ $(function() {
 
     OCTOPRINT_VIEWMODELS.push([
         ShutdownPrinterViewModel,
-        ["loginStateViewModel", "settingsViewModel"],
+        ["loginStateViewModel", "settingsViewModel", "printerStateViewModel"],
         document.getElementById("sidebar_plugin_shutdownprinter")
     ]);
 });
