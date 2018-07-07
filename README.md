@@ -46,7 +46,8 @@ JSON : {"command": "turnOff", "ip": "192.168.1.43" }
 ## Mode API Custom
 the plugin will call specifique API (external) after print finish
 exemple for tplink : 
-```POST : enable
+```
+POST : enable
 URL : http://127.0.0.1:5000/api/plugin/tplinksmartplug
 header (json format) : {"Content-Type": "application/json", "X-Api-Key" : "AAAAAAAAAAAAAAAA"}
 body : {"command": "turnOff", "ip": "192.168.1.43" }
