@@ -41,7 +41,7 @@ Plugin ID : tplinksmartplug
 Port : 5000
 JSON : {"command": "turnOff", "ip": "192.168.1.43" }
 ```
-
+NB : do not forget to put the API key (octoprint / settings / API)
 
 ## Mode API Custom
 the plugin will call specifique API (external) after print finish
@@ -53,6 +53,6 @@ header (json format) : {"Content-Type": "application/json", "X-Api-Key" : "AAAAA
 body : {"command": "turnOff", "ip": "192.168.1.43" }
 ```
 
-NB : do not forget to put the API key (octoprint / settings / API)
+
 
 
