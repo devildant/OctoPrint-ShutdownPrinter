@@ -256,7 +256,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 data = self.api_json_command
                 self._logger.info("Shutting down printer with API")
                 try:
-                        response = requests.post(url, headers=headers, data=data, stream=True, timeout=0.001)
+                        response = requests.post(url, headers=headers, data=data, verify=False, timeout=0.001)
                 except requests.exceptions.Timeout:
                         return
                 except Exception as e:
@@ -272,7 +272,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         data = self.api_custom_body
                         self._logger.info("Shutting down printer with API custom (POST)")
                         try:
-                                response = requests.post(self.api_custom_url, headers=headers, data=data, stream=True, timeout=0.001)
+                                response = requests.post(self.api_custom_url, headers=headers, data=data, verify=False, timeout=0.001)
                         except requests.exceptions.Timeout:
                                 return
                         except Exception as e:
@@ -281,7 +281,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 elif self.api_custom_GET == True:
                         self._logger.info("Shutting down printer with API custom (GET)")
                         try:
-                                response = requests.post(self.api_custom_url, headers=headers, stream=True, timeout=0.001)
+                                response = requests.post(self.api_custom_url, headers=headers, verify=False, timeout=0.001)
                         except requests.exceptions.Timeout:
                                 return
                         except Exception as e:
