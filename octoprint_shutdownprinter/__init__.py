@@ -2,7 +2,8 @@
 from __future__ import absolute_import
 
 import json
-import requests
+import urllib2
+import ssl
 import octoprint.plugin
 from octoprint.server import user_permission
 from octoprint.util import RepeatedTimer
@@ -42,6 +43,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self._timeout_value = None
                 self._abort_timer = None
                 self._abort_timer_temp = None
+                self.ctx = ssl.create_default_context()
+                self.ctx.check_hostname = False
+                self.ctx.verify_mode = ssl.CERT_NONE
 
         def initialize(self):
                 self.url = self._settings.get(["url"])
@@ -256,9 +260,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 data = self.api_json_command
                 self._logger.info("Shutting down printer with API")
                 try:
-                        response = requests.post(url, headers=headers, data=data, stream=True, timeout=0.001)
-                except requests.exceptions.Timeout:
-                        return
+                        request = urllib2.Request(url, data=data, headers=headers)
+                        request.get_method = lambda: "POST"
+                        contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+                        self._logger.debug("call response (POST API octoprint): %s" % contents)
                 except Exception as e:
                         self._logger.error("Failed to connect to call api: %s" % e.message)
                         return
@@ -272,18 +277,19 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         data = self.api_custom_body
                         self._logger.info("Shutting down printer with API custom (POST)")
                         try:
-                                response = requests.post(self.api_custom_url, headers=headers, data=data, stream=True, timeout=0.001)
-                        except requests.exceptions.Timeout:
-                                return
+                                request = urllib2.Request(self.api_custom_url, data=data, headers=headers)
+                                request.get_method = lambda: "POST"
+                                contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+                                self._logger.debug("call response (POST): %s" % contents)
                         except Exception as e:
                                 self._logger.error("Failed to connect to call api: %s" % e.message)
                                 return
                 elif self.api_custom_GET == True:
                         self._logger.info("Shutting down printer with API custom (GET)")
                         try:
-                                response = requests.post(self.api_custom_url, headers=headers, stream=True, timeout=0.001)
-                        except requests.exceptions.Timeout:
-                                return
+                                request = urllib2.Request(self.api_custom_url, headers=headers)
+                                contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+                                self._logger.debug("call response (GET): %s" % contents)
                         except Exception as e:
                                 self._logger.error("Failed to connect to call api: %s" % e.message)
                                 return
