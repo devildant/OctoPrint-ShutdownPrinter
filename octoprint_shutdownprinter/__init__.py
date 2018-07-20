@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-import json
 import urllib2
 import ssl
 import octoprint.plugin
