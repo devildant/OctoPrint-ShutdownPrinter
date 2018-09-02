@@ -19,6 +19,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 	def __init__(self):
                 self.url = ""
+                self.gcode = "M81"
                 self._mode_shutdown_gcode = True
                 self._mode_shutdown_api = False
                 self._mode_shutdown_api_custom = False
@@ -47,9 +48,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self.ctx.verify_mode = ssl.CERT_NONE
 
         def initialize(self):
+                self.gcode = self._settings.get(["gcode"])
+                self._logger.debug("gcode: %s" % self.gcode)
+
                 self.url = self._settings.get(["url"])
                 self._logger.debug("url: %s" % self.url)
-				
+   
                 self.api_key_plugin = self._settings.get(["api_key_plugin"])
                 self._logger.debug("api_key_plugin: %s" % self.api_key_plugin)
 		
@@ -294,11 +298,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                                 return
 
         def _shutdown_printer_by_gcode(self):
-		        self._printer.commands("M81 " + self.url)
-		        self._logger.info("Shutting down printer with command: M81 " + self.url)
+		        self._printer.commands(self.gcode + " " + self.url)
+		        self._logger.info("Shutting down printer with command: " + self.gcode + " " + self.url)
 
         def get_settings_defaults(self):
                 return dict(
+                        gcode = "M81",
                         url = "",
                         api_key_plugin = "",
                         abortTimeout = 30,
@@ -322,6 +327,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
         def on_settings_save(self, data):
                 octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 
+                self.gcode = self._settings.get(["gcode"])
                 self.url = self._settings.get(["url"])
                 self.api_key_plugin = self._settings.get(["api_key_plugin"])
                 self._mode_shutdown_gcode = self._settings.get_boolean(["_mode_shutdown_gcode"])
