@@ -162,7 +162,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
         def on_event(self, event, payload):
 
                 if event == Events.CLIENT_OPENED:
-                      
+                        self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
                         return
                 
                 if not self._shutdown_printer_enabled:
