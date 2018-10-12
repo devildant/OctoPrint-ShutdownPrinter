@@ -19,6 +19,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 	def __init__(self):
                 self.url = ""
+                self.previousEventIsCancel = False
                 self.gcode = "M81"
                 self._mode_shutdown_gcode = True
                 self._mode_shutdown_api = False
@@ -172,18 +173,32 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 if event not in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
                         return
                 
+                if event == Events.PRINT_STARTED:
+                        self._logger.info("Print started")
+                        self.previousEventIsCancel = False
+                        return
                 if event == Events.PRINT_DONE:
                         self._temperature_target()
                         return
-                
                 elif event == Events.PRINT_CANCELLED and self.printCancelled:
+                        self._logger.info("Print cancelled")
+                        self.previousEventIsCancel = True
                         self._temperature_target()
+                        return
+                elif event == Events.PRINT_CANCELLED:
+                        self._logger.info("Print cancelled")
+                        self.previousEventIsCancel = True
                         return
                 
                 elif event == Events.PRINT_FAILED and self.printFailed:
+                        if self.previousEventIsCancel == True:
+                                self.previousEventIsCancel = False
+                                return;
+                        self._logger.info("Print failed")
                         self._temperature_target()
                         return
                 else:
+                        self.previousEventIsCancel = False
                         return
 
         def _temperature_target(self):
