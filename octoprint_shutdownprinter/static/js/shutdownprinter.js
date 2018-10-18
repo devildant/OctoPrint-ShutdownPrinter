@@ -164,6 +164,16 @@ $(function() {
 			} else {
 				self.testButtonChangeStatus(false);
 			}
+			 $.ajax({
+                    url: API_BASEURL + "plugin/shutdownprinter",
+                    type: "POST",
+                    dataType: "json",
+                    data: JSON.stringify({
+                        command: "update"
+                    }),
+                    contentType: "application/json; charset=UTF-8"
+                })
+			
 		};
         
 		self.onEventPrinterStateChanged = function(payload) {

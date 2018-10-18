@@ -127,6 +127,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_api_commands(self):
 		return dict(enable=[],
+			update=[],
 			disable=[],
 			shutdown=["mode"],
 			abort=[])
