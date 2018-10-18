@@ -126,11 +126,11 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
             
 
 	def get_api_commands(self):
-		return dict(enable=[],
-			update=[],
-			disable=[],
-			shutdown=["mode"],
-			abort=[])
+		return dict(enable=["eventView"],
+			update=["eventView"],
+			disable=["eventView"],
+			shutdown=["mode", "eventView"],
+			abort=["eventView"])
 
 	def on_api_command(self, command, data):
                 if not user_permission.can():
@@ -158,14 +158,14 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                                 self._settings.set_boolean(["lastCheckBoxValue"], self.lastCheckBoxValue)
                                 self._settings.save()
                                 eventManager().fire(Events.SETTINGS_UPDATED)
-                        
-                self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
+                if data["eventView"] == True:      
+                        self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
 
         def on_event(self, event, payload):
 
-                if event == Events.CLIENT_OPENED:
-                        self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
-                        return
+                # if event == Events.CLIENT_OPENED:
+                        # self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
+                        # return
                 
                 if not self._shutdown_printer_enabled:
                         return

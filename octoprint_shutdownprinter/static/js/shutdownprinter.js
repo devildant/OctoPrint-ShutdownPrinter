@@ -44,7 +44,8 @@ $(function() {
                 dataType: "json",
                 data: JSON.stringify({
                     command: "shutdown",
-					mode: 1
+					mode: 1,
+					eventView : true
                 }),
                 contentType: "application/json; charset=UTF-8"
             }).done(function() {
@@ -64,7 +65,8 @@ $(function() {
                 dataType: "json",
                 data: JSON.stringify({
                     command: "shutdown",
-					mode: 2
+					mode: 2,
+					eventView : true
                 }),
                 contentType: "application/json; charset=UTF-8"
             }).done(function() {
@@ -84,7 +86,8 @@ $(function() {
                 dataType: "json",
                 data: JSON.stringify({
                     command: "shutdown",
-					mode: 3
+					mode: 3,
+					eventView : true
                 }),
                 contentType: "application/json; charset=UTF-8"
             }).done(function() {
@@ -169,7 +172,8 @@ $(function() {
                     type: "POST",
                     dataType: "json",
                     data: JSON.stringify({
-                        command: "update"
+                        command: "update",
+						eventView : true
                     }),
                     contentType: "application/json; charset=UTF-8"
                 })
@@ -191,7 +195,8 @@ $(function() {
                     type: "POST",
                     dataType: "json",
                     data: JSON.stringify({
-                        command: "enable"
+                        command: "enable",
+						eventView : false
                     }),
                     contentType: "application/json; charset=UTF-8"
                 })
@@ -201,7 +206,8 @@ $(function() {
                     type: "POST",
                     dataType: "json",
                     data: JSON.stringify({
-                        command: "disable"
+                        command: "disable",
+						eventView : false
                     }),
                     contentType: "application/json; charset=UTF-8"
                 })
@@ -243,7 +249,8 @@ $(function() {
                 type: "POST",
                 dataType: "json",
                 data: JSON.stringify({
-                    command: "abort"
+                    command: "abort",
+					eventView : true
                 }),
                 contentType: "application/json; charset=UTF-8"
             })
