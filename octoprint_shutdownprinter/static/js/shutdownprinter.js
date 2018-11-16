@@ -173,10 +173,21 @@ $(function() {
                     dataType: "json",
                     data: JSON.stringify({
                         command: "update",
-						eventView : true
+						eventView : false
                     }),
                     contentType: "application/json; charset=UTF-8"
                 })
+			$.ajax({
+				url: API_BASEURL + "plugin/shutdownprinter",
+				type: "POST",
+				data: JSON.stringify({
+					command: "status"
+				}),
+				context:self,
+				contentType: "application/json; charset=UTF-8"
+			}).done(function(data, textStatus, jqXHR ){
+				this.shutdownprinterEnabled(data == "True" ? true : false);
+			})	
 			
 		};
         
@@ -221,8 +232,7 @@ $(function() {
                 return;
             }
 
-            self.shutdownprinterEnabled(data.shutdownprinterEnabled);
-
+			 self.shutdownprinterEnabled(data.shutdownprinterEnabled);
             if (data.type == "timeout") {
                 if ((data.timeout_value != null) && (data.timeout_value > 0)) {
                     self.timeoutPopupOptions.text = self.timeoutPopupText + data.timeout_value;

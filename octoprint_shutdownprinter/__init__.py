@@ -127,6 +127,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_api_commands(self):
 		return dict(enable=["eventView"],
+			status=[],
 			update=["eventView"],
 			disable=["eventView"],
 			shutdown=["mode", "eventView"],
@@ -136,7 +137,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 if not user_permission.can():
                         return make_response("Insufficient rights", 403)
 
-                if command == "enable":
+                if command == "status":
+                        return make_response(str(self._shutdown_printer_enabled), 200)
+                elif command == "enable":
                         self._shutdown_printer_enabled = True
                 elif command == "disable":
                         self._shutdown_printer_enabled = False
@@ -170,13 +173,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 if not self._shutdown_printer_enabled:
                         return
                 
-                
-                if event not in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
-                        return
-                
                 if event == Events.PRINT_STARTED:
                         self._logger.info("Print started")
                         self.previousEventIsCancel = False
+						
+                if event not in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
+                        return
+                
                         return
                 if event == Events.PRINT_DONE:
                         self._temperature_target()
