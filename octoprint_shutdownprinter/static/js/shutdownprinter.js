@@ -114,7 +114,8 @@ $(function() {
 		
         // Hack to remove automatically added Cancel button
         // See https://github.com/sciactive/pnotify/issues/141
-        PNotify.prototype.options.confirm.buttons = [];
+        //PNotify.prototype.options.confirm.buttons = [];
+		//another way use, add custom style class for hide cancel button
         self.timeoutPopupText = gettext('Shutting down printer in ');
         self.timeoutPopupOptions = {
             title: gettext('Shutdown Printer'),
@@ -130,6 +131,13 @@ $(function() {
                     click: function(notice, value){
                         notice.remove();
                         notice.get().trigger("pnotify.cancel", [notice, value]);
+                    }
+                }, {
+                    addClass: 'shutdownPrinterHideCancelBtnConfirm',
+                    promptTrigger: true,
+                    click: function(notice, value){
+                        notice.remove();
+                 
                     }
                 }]
             },
