@@ -278,6 +278,6 @@ $(function() {
     OCTOPRINT_VIEWMODELS.push([
         ShutdownPrinterViewModel,
         ["loginStateViewModel", "settingsViewModel", "printerStateViewModel"],
-        document.getElementById("sidebar_plugin_shutdownprinter")
+		$(".sidebar_plugin_shutdownprinter").get(0)
     ]);
 });
