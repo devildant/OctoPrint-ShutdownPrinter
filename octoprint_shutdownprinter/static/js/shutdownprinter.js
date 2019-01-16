@@ -236,7 +236,7 @@ $(function() {
         self.shutdownprinterEnabled.subscribe(self.onShutdownPrinterEvent, self);
 
         self.onDataUpdaterPluginMessage = function(plugin, data) {
-            if (plugin != "shutdownprinter") {
+            if (plugin != "shutdownprinter" && plugin != "octoprint_shutdownprinter") {
                 return;
             }
 
