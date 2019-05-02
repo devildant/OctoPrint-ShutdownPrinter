@@ -175,7 +175,12 @@ $(function() {
 			} else {
 				self.testButtonChangeStatus(false);
 			}
-			 $.ajax({
+			 
+			
+		};
+		
+		self.onUserLoggedIn = function() {
+			$.ajax({
                     url: API_BASEURL + "plugin/shutdownprinter",
                     type: "POST",
                     dataType: "json",
@@ -184,7 +189,7 @@ $(function() {
 						eventView : false
                     }),
                     contentType: "application/json; charset=UTF-8"
-                })
+            })
 			$.ajax({
 				url: API_BASEURL + "plugin/shutdownprinter",
 				type: "POST",
@@ -196,8 +201,10 @@ $(function() {
 			}).done(function(data, textStatus, jqXHR ){
 				this.shutdownprinterEnabled(data == "True" ? true : false);
 			})	
-			
-		};
+		}
+		
+		self.onUserLoggedOut = function() {
+		}
         
 		self.onEventPrinterStateChanged = function(payload) {
         			if (payload.state_id == "PRINTING" || payload.state_id == "PAUSED"){
