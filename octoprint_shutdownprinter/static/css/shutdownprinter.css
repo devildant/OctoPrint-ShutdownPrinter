@@ -1,33 +1,38 @@
-#touch body #sidebar_plugin_shutdownprinter_wrapper .accordion-heading {
-    display: block !important;
-    pointer-events: none;
-    margin: 40px -30px 0;
-    padding: .5rem 30px;
-    background-color: #00B0FF;
-    color: black;
-}
-#touch body #sidebar_plugin_shutdownprinter_wrapper .accordion-heading>a, #touch body #sidebar_plugin_shutdownprinter_wrapper .accordion-heading>a i {
-    color: black;
-    font-size: 1.4375rem;
-    padding-right: 0;
-    padding-left: 0;
-}
+/* #touch body #sidebar_plugin_shutdownprinter_wrapper .accordion-heading { */
+    /* display: block !important; */
+    /* pointer-events: none; */
+    /* margin: 40px -30px 0; */
+    /* padding: .5rem 30px; */
+    /* background-color: #00B0FF; */
+    /* color: black; */
+/* } */
+/* #touch body #sidebar_plugin_shutdownprinter_wrapper .accordion-heading>a, #touch body #sidebar_plugin_shutdownprinter_wrapper .accordion-heading>a i { */
+    /* color: black; */
+    /* font-size: 1.4375rem; */
+    /* padding-right: 0; */
+    /* padding-left: 0; */
+/* } */
 
-#touch body #sidebar_plugin_shutdownprinter > label {
-    display: block;
-    background:#333;
-    padding-left: 50px;
-	padding-top: 15px;
-    padding-bottom: 15px;
-}
+/* #touch body #sidebar_plugin_shutdownprinter > label { */
+    /* display: block; */
+    /* background:#333; */
+    /* padding-left: 50px; */
+	/* padding-top: 15px; */
+    /* padding-bottom: 15px; */
+/* } */
 
-#touch body #sidebar_plugin_shutdownprinter {
-    pointer-events: auto;
-    margin: 0px -30px 0;
-    padding-right: 15px;
-    padding-left: 15px;
-}
+/* #touch body #sidebar_plugin_shutdownprinter { */
+    /* pointer-events: auto; */
+    /* margin: 0px -30px 0; */
+    /* padding-right: 15px; */
+    /* padding-left: 15px; */
+/* } */
 
 .shutdownPrinterHideCancelBtnConfirm {
 	display:none;
 }
+
+#touch body #tabs #sidebar_plugin_shutdownprinter_wrapper_link a:before, #touch body #navbar #all_touchui_settings #sidebar_plugin_shutdownprinter_wrapper_link a:before,#touch body #tabs #sidebar_plugin_shutdownprinter_wrapper_link2 a:before, #touch body #navbar #all_touchui_settings #sidebar_plugin_shutdownprinter_wrapper_link2 a:before {
+    content: "\f011";
+}
+

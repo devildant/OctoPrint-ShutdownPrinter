@@ -168,7 +168,7 @@ $(function() {
 		}
 		 //add octoprint event for check finish
 		self.onStartupComplete = function () {
-			self.touchUIMoveElement(self, 0);
+			//self.touchUIMoveElement(self, 0);
 			if (self.printer.isPrinting())
 			{
 				self.testButtonChangeStatus(true);
