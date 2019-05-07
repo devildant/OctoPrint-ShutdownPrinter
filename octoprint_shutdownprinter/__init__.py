@@ -174,7 +174,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         return
                 
                 if event == Events.PRINT_STARTED:
-                        self._logger.info("Print started")
+                        # self._logger.info("Print started")
                         self.previousEventIsCancel = False
 						
                 if event not in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
@@ -185,12 +185,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         self._temperature_target()
                         return
                 elif event == Events.PRINT_CANCELLED and self.printCancelled:
-                        self._logger.info("Print cancelled")
+                        # self._logger.info("Print cancelled")
                         self.previousEventIsCancel = True
                         self._temperature_target()
                         return
                 elif event == Events.PRINT_CANCELLED:
-                        self._logger.info("Print cancelled")
+                        # self._logger.info("Print cancelled")
                         self.previousEventIsCancel = True
                         return
                 
@@ -198,7 +198,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         if self.previousEventIsCancel == True:
                                 self.previousEventIsCancel = False
                                 return;
-                        self._logger.info("Print failed")
+                        # self._logger.info("Print failed")
                         self._temperature_target()
                         return
                 else:
