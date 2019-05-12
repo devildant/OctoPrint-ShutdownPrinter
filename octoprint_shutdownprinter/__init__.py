@@ -9,6 +9,7 @@ from octoprint.util import RepeatedTimer
 from octoprint.events import eventManager, Events
 from flask import make_response
 import time
+import commands
 
 class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 							  octoprint.plugin.AssetPlugin,
@@ -33,6 +34,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self.api_json_command = ""
                 self.api_plugin_name = ""
                 self.api_plugin_port = 5000
+                self.extraCommand = ""
                 self.abortTimeout = 0
                 self.temperatureValue = 0
                 self.temperatureTarget = False
@@ -96,6 +98,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				
                 self.temperatureTarget = self._settings.get_boolean(["temperatureTarget"])
                 self._logger.debug("temperatureTarget: %s" % self.temperatureTarget)
+			
+                self.extraCommand = self._settings.get(["extraCommand"])
+                self._logger.debug("extraCommand: %s" % self.extraCommand)
 
                 self.abortTimeout = self._settings.get_int(["abortTimeout"])
                 self._logger.debug("abortTimeout: %s" % self.abortTimeout)
@@ -277,6 +282,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 elif mode == 3:
                         self._shutdown_printer_by_API_custom()
 
+        def _extraCommand(self):
+		        mCmdFound = commands.getoutput(self.extraCommand)
+		        self._logger.info("response extraCommand: %s" % mCmdFound)
+
         def _shutdown_printer_by_API(self):
                 url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
                 headers = {'Content-Type': 'application/json', 'X-Api-Key' : self.api_key_plugin}
@@ -287,6 +296,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         request.get_method = lambda: "POST"
                         contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
                         self._logger.debug("call response (POST API octoprint): %s" % contents)
+                        self._extraCommand()
                 except Exception as e:
                         self._logger.error("Failed to connect to call api: %s" % e.message)
                         return
@@ -304,6 +314,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                                 request.get_method = lambda: "POST"
                                 contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
                                 self._logger.debug("call response (POST): %s" % contents)
+                                self._extraCommand()
                         except Exception as e:
                                 self._logger.error("Failed to connect to call api: %s" % e.message)
                                 return
@@ -313,6 +324,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                                 request = urllib2.Request(self.api_custom_url, headers=headers)
                                 contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
                                 self._logger.debug("call response (GET): %s" % contents)
+                                self._extraCommand()
                         except Exception as e:
                                 self._logger.error("Failed to connect to call api: %s" % e.message)
                                 return
@@ -320,6 +332,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
         def _shutdown_printer_by_gcode(self):
 		        self._printer.commands(self.gcode + " " + self.url)
 		        self._logger.info("Shutting down printer with command: " + self.gcode + " " + self.url)
+		        self._extraCommand()
 
         def get_settings_defaults(self):
                 return dict(
@@ -327,6 +340,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         url = "",
                         api_key_plugin = "",
                         abortTimeout = 30,
+                        extraCommand = "",
                         _mode_shutdown_gcode = True,
                         _mode_shutdown_api = False,
                         _mode_shutdown_api_custom = False,
@@ -363,6 +377,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self.api_plugin_port = self._settings.get_int(["api_plugin_port"])
                 self.temperatureValue = self._settings.get_int(["temperatureValue"])
                 self.temperatureTarget = self._settings.get_int(["temperatureTarget"])
+                self.extraCommand = self._settings.get(["extraCommand"])
                 self.printFailed = self._settings.get_boolean(["printFailed"])
                 self.printCancelled = self._settings.get_boolean(["printCancelled"])
                 self.abortTimeout = self._settings.get_int(["abortTimeout"])
