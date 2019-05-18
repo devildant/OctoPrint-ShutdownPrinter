@@ -283,8 +283,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         self._shutdown_printer_by_API_custom()
 
         def _extraCommand(self):
-		        mCmdFound = commands.getoutput(self.extraCommand)
-		        self._logger.info("response extraCommand: %s" % mCmdFound)
+                if self.extraCommand != "":
+                        mCmdFound = commands.getoutput(self.extraCommand)
+                        self._logger.info("response extraCommand: %s" % mCmdFound)
 
         def _shutdown_printer_by_API(self):
                 url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
