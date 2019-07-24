@@ -27,6 +27,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self._mode_shutdown_api_custom = False
                 self.api_custom_GET = False
                 self.api_custom_POST = False
+                self.api_custom_PUT = False
                 self.api_custom_url = ""
                 self.api_custom_json_header = ""
                 self.api_custom_body = ""
@@ -74,6 +75,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 								
                 self.api_custom_GET = self._settings.get_boolean(["api_custom_GET"])
                 self._logger.debug("api_custom_GET: %s" % self.api_custom_GET)
+
+                self.api_custom_PUT = self._settings.get_boolean(["api_custom_PUT"])
+                self._logger.debug("api_custom_PUT: %s" % self.api_custom_PUT)
 				
                 self.api_custom_url = self._settings.get(["api_custom_url"])
                 self._logger.debug("api_custom_url: %s" % self.api_custom_url)
@@ -307,6 +311,18 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 headers = {}
                 if self.api_custom_json_header != "":
                         headers = eval(self.api_custom_json_header)
+                if self.api_custom_PUT == True:
+                        data = self.api_custom_body
+                        self._logger.info("Shutting down printer with API custom (PUT)")
+                        try:
+                                request = urllib2.Request(self.api_custom_url, data=data, headers=headers)
+                                request.get_method = lambda: "PUT"
+                                contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+                                self._logger.debug("call response (PUT): %s" % contents)
+                                self._extraCommand()
+                        except Exception as e:
+                                self._logger.error("Failed to connect to call api: %s" % e.message)
+                                return
                 if self.api_custom_POST == True:
                         data = self.api_custom_body
                         self._logger.info("Shutting down printer with API custom (POST)")
@@ -347,6 +363,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         _mode_shutdown_api_custom = False,
                         api_custom_POST = False,
                         api_custom_GET = False,
+                        api_custom_PUT = False,
                         api_custom_url = "",
                         api_custom_json_header = "",
                         api_custom_body = "",
@@ -370,6 +387,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self._mode_shutdown_api_custom = self._settings.get_boolean(["_mode_shutdown_api_custom"])
                 self.api_custom_POST = self._settings.get_boolean(["api_custom_POST"])
                 self.api_custom_GET = self._settings.get_boolean(["api_custom_GET"])
+                self.api_custom_PUT = self._settings.get_boolean(["api_custom_PUT"])
                 self.api_custom_url = self._settings.get(["api_custom_url"])
                 self.api_custom_json_header = self._settings.get(["api_custom_json_header"])
                 self.api_custom_body = self._settings.get(["api_custom_body"])
