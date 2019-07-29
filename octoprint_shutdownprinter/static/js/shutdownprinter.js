@@ -103,14 +103,16 @@ $(function() {
 		]
 		self.listOffHTTPMethode = [
 			{"id" : "#shutdownprinter_api_custom_GET"},
-			{"id" : "#shutdownprinter_api_custom_POST"}
+            {"id" : "#shutdownprinter_api_custom_POST"}
+            {"id" : "#shutdownprinter_api_custom_PUT"}
 		]
 		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_gcode", self.listOffMode);
 		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_api", self.listOffMode);
 		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_api_custom", self.listOffMode);
 		
 		self.eventChangeCheckToRadio("#shutdownprinter_api_custom_GET", self.listOffHTTPMethode);
-		self.eventChangeCheckToRadio("#shutdownprinter_api_custom_POST", self.listOffHTTPMethode);
+        self.eventChangeCheckToRadio("#shutdownprinter_api_custom_POST", self.listOffHTTPMethode);
+        self.eventChangeCheckToRadio("#shutdownprinter_api_custom_PUT", self.listOffHTTPMethode);
 		
         // Hack to remove automatically added Cancel button
         // See https://github.com/sciactive/pnotify/issues/141
