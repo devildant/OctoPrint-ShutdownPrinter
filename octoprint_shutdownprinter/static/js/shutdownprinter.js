@@ -103,7 +103,7 @@ $(function() {
 		]
 		self.listOffHTTPMethode = [
 			{"id" : "#shutdownprinter_api_custom_GET"},
-            {"id" : "#shutdownprinter_api_custom_POST"}
+            {"id" : "#shutdownprinter_api_custom_POST"},
             {"id" : "#shutdownprinter_api_custom_PUT"}
 		]
 		self.eventChangeCheckToRadio("#shutdownprinter_mode_shutdown_gcode", self.listOffMode);
