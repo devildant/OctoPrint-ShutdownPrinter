@@ -287,8 +287,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
         def _extraCommand(self):
                 if self.extraCommand != "":
-						process = subprocess.Popen(mCmdFound, shell=True, stdin = None, stdout=subprocess.PIPE)
-						self.extraCommand = process.communicate()
+                        process = subprocess.Popen(mCmdFound, shell=True, stdin = None, stdout=subprocess.PIPE)
+                        self.extraCommand = process.communicate()
                         self._logger.info("response extraCommand: %s" % mCmdFound.rstrip().strip())
 
         def _shutdown_printer_by_API(self):
