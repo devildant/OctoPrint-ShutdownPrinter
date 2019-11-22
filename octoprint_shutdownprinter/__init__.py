@@ -9,6 +9,7 @@ from octoprint.util import RepeatedTimer
 from octoprint.events import eventManager, Events
 from flask import make_response
 import time
+import subprocess
 
 class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 							  octoprint.plugin.AssetPlugin,
@@ -287,9 +288,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
         def _extraCommand(self):
                 if self.extraCommand != "":
-                        process = subprocess.Popen(mCmdFound, shell=True, stdin = None, stdout=subprocess.PIPE)
-                        self.extraCommand = process.communicate()
-                        self._logger.info("response extraCommand: %s" % mCmdFound.rstrip().strip())
+                        process = subprocess.Popen(self.extraCommand, shell=True, stdin = None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        stdout, stderr = process.communicate()
+                        self._logger.info("extraCommand stdout: %s" % stdout.rstrip().strip())
+                        self._logger.info("extraCommand stderr: %s" % stderr.rstrip().strip())
 
         def _shutdown_printer_by_API(self):
                 url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
