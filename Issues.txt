@@ -1,0 +1,4 @@
+NameError: global name 'mCmdFound' is not defined
+NameError: global name 'subprocess' is not defined
+
+after install from OctoPrint plugins
