@@ -122,6 +122,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                 self._logger.debug("lastCheckBoxValue: %s" % self.lastCheckBoxValue)
                 if self.rememberCheckBox:
                         self._shutdown_printer_enabled = self.lastCheckBoxValue
+                self.shutdown_printer = self._plugin_manager.get_hooks("octoprint.plugin.ShutdownPrinter.shutdown")
                 
 	def get_assets(self):
 		return dict(js=["js/shutdownprinter.js"],css=["css/shutdownprinter.css"])
@@ -287,6 +288,15 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
                         self._shutdown_printer_by_API_custom()
 
         def _extraCommand(self):
+                if self.shutdown_printer is not None:
+				        for name, hook in self.shutdown_printer.items():
+				                # first sd card upload plugin that feels responsible gets the job
+				                try:
+				                        hook()
+				                except Exception as e:
+				                        self._logger.error("Failed get hook: %s" % e.message)
+                else:
+				        self._logger.error("hook does not exist")
                 if self.extraCommand != "":
                         process = subprocess.Popen(self.extraCommand, shell=True, stdin = None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
