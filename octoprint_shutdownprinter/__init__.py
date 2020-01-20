@@ -225,7 +225,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self.previousEventIsCancel = True
 			return
 		
-		elif event == Events.PRINT_FAILED and self.printFailed:
+		elif (event == Events.ERROR or event == Events.PRINT_FAILED) and self.printFailed:
 			if self.previousEventIsCancel == True:
 				self.previousEventIsCancel = False
 				return;
