@@ -13,6 +13,7 @@ from octoprint.events import eventManager, Events
 from flask import make_response
 from flask_babel import gettext
 import time
+import threading
 import subprocess
 
 class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
@@ -175,7 +176,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		elif command == "disable":
 			self._shutdown_printer_enabled = False
 		elif command == "shutdown":
-			self._shutdown_printer_API_CMD( data["mode"]) #mode 1 = gcode, mode 2 = api, mode 3 = custom api
+			def process():
+					self._shutdown_printer_API_CMD( data["mode"]) #mode 1 = gcode, mode 2 = api, mode 3 = custom api
+			thread = threading.Thread(target=process)
+			thread.daemon = True
+			self._logger.info("start thread")
+			thread.start()
+			
 		elif command == "abort":
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
@@ -192,8 +199,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._settings.set_boolean(["lastCheckBoxValue"], self.lastCheckBoxValue)
 				self._settings.save()
 				eventManager().fire(Events.SETTINGS_UPDATED)
+		self._logger.info("eventView")
 		if data["eventView"] == True:      
 			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="timeout", timeout_value=self._timeout_value))
+		return make_response("ok", 200)
 
 	def on_event(self, event, payload):
 
@@ -332,7 +341,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		try:
 			request = urllib2.Request(url, data=data, headers=headers)
 			request.get_method = lambda: "POST"
-			contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+			ctx = ssl.create_default_context()
+			ctx.check_hostname = False
+			ctx.verify_mode = ssl.CERT_NONE
+			contents = urllib2.urlopen(request, timeout=30, context=ctx).read()
 			self._logger.debug("call response (POST API octoprint): %s" % contents)
 			self._extraCommand()
 		except Exception as e:
@@ -350,7 +362,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			try:
 				request = urllib2.Request(self.api_custom_url, data=data, headers=headers)
 				request.get_method = lambda: "PUT"
-				contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+				ctx = ssl.create_default_context()
+				ctx.check_hostname = False
+				ctx.verify_mode = ssl.CERT_NONE
+				contents = urllib2.urlopen(request, timeout=30, context=ctx).read()
 				self._logger.debug("call response (PUT): %s" % contents)
 				self._extraCommand()
 			except Exception as e:
@@ -362,7 +377,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			try:
 				request = urllib2.Request(self.api_custom_url, data=data, headers=headers)
 				request.get_method = lambda: "POST"
-				contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+				ctx = ssl.create_default_context()
+				ctx.check_hostname = False
+				ctx.verify_mode = ssl.CERT_NONE
+				contents = urllib2.urlopen(request, timeout=30, context=ctx).read()
 				self._logger.debug("call response (POST): %s" % contents)
 				self._extraCommand()
 			except Exception as e:
@@ -372,7 +390,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.info("Shutting down printer with API custom (GET)")
 			try:
 				request = urllib2.Request(self.api_custom_url, headers=headers)
-				contents = urllib2.urlopen(request, timeout=30, context=self.ctx).read()
+				ctx = ssl.create_default_context()
+				ctx.check_hostname = False
+				ctx.verify_mode = ssl.CERT_NONE
+				contents = urllib2.urlopen(request, timeout=30, context=ctx).read()
 				self._logger.debug("call response (GET): %s" % contents)
 				self._extraCommand()
 			except Exception as e:
