@@ -5,6 +5,7 @@ $(function() {
         self.loginState = parameters[0];
         self.settings = parameters[1];
         self.printer = parameters[2];
+		self.timewebsockermessage = 0;
 		
 		
         self.shutdownprinterEnabled = ko.observable();
@@ -119,6 +120,7 @@ $(function() {
         //PNotify.prototype.options.confirm.buttons = [];
 		//another way use, add custom style class for hide cancel button
         self.timeoutPopupText = gettext('Shutting down printer in ');
+        self.waitTempPopupText = gettext('Shutting down printer when cooldown temperature will be reached ');
         self.timeoutPopupOptions = {
             title: gettext('Shutdown Printer'),
             type: 'notice',
@@ -248,8 +250,12 @@ $(function() {
             if (plugin != "shutdownprinter" && plugin != "octoprint_shutdownprinter") {
                 return;
             }
-
 			 self.shutdownprinterEnabled(data.shutdownprinterEnabled);
+			 if (self.timewebsockermessage < data.time) {
+				 self.timewebsockermessage = data.time
+			 } else {
+				 return;
+			 }
             if (data.type == "timeout") {
                 if ((data.timeout_value != null) && (data.timeout_value > 0)) {
                     self.timeoutPopupOptions.text = self.timeoutPopupText + data.timeout_value;
@@ -266,6 +272,27 @@ $(function() {
                     }
                 }
             }
+			else if (data.type == "waittemp") {
+                if ((data.wait_temp != null) && (data.wait_temp != "")) {
+                    self.timeoutPopupOptions.text = self.waitTempPopupText + "\n" + data.wait_temp;
+                    if (typeof self.timeoutPopup != "undefined") {
+                        self.timeoutPopup.update(self.timeoutPopupOptions);
+                    } else {
+                        self.timeoutPopup = new PNotify(self.timeoutPopupOptions);
+                        self.timeoutPopup.get().on('pnotify.cancel', function() {self.abortShutdown(true);});
+                    }
+                } else {
+                    if (typeof self.timeoutPopup != "undefined") {
+                        self.timeoutPopup.remove();
+                        self.timeoutPopup = undefined;
+                    }
+                }
+            } else if (data.type == "destroynotif") {
+				if (typeof self.timeoutPopup != "undefined") {
+					self.timeoutPopup.remove();
+					self.timeoutPopup = undefined;
+				}
+			}
         }
 
         self.abortShutdown = function(abortShutdownValue) {
