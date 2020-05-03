@@ -229,6 +229,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			if self._abort_timer_temp is not None:
 				self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
+			self._destroyNotif()
 						
 		if event not in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
 			return
