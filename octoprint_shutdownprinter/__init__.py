@@ -1,7 +1,11 @@
 # coding=utf-8
+from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import urllib2
+try:
+	import urllib2
+except (ImportError, RuntimeError):
+	import urllib.request as urllib2
 import ssl
 import octoprint.plugin
 try:
@@ -14,6 +18,7 @@ from flask import make_response
 from flask_babel import gettext
 import time
 import threading
+import traceback
 import subprocess
 
 class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
@@ -180,7 +185,11 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._shutdown_printer_enabled = False
 		elif command == "shutdown":
 			def process():
-					self._shutdown_printer_API_CMD( data["mode"]) #mode 1 = gcode, mode 2 = api, mode 3 = custom api
+					try:
+						self._shutdown_printer_API_CMD( data["mode"]) #mode 1 = gcode, mode 2 = api, mode 3 = custom api
+					except:
+						# exc_type, exc_obj, exc_tb = sys.exc_info()
+						self._logger.error("Failed read tty screen : %s" % str(traceback.format_exc()))
 			thread = threading.Thread(target=process)
 			thread.daemon = True
 			self._logger.info("start thread")
@@ -218,7 +227,6 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		
 		if not self._shutdown_printer_enabled:
 			return
-		
 		if event == Events.PRINT_STARTED:
 			# self._logger.info("Print started")
 			self.previousEventIsCancel = False
@@ -236,6 +244,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		
 			return
 		if event == Events.PRINT_DONE:
+			# self._logger.info("Print done")
 			self._temperature_target()
 			return
 		elif event == Events.PRINT_CANCELLED and self.printCancelled:
@@ -261,9 +270,11 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 	def _temperature_target(self):
 		if self._abort_timer_temp is not None:
+			# self._logger.info("_abort_timer_temp_destroyNotif")
 			self._destroyNotif()
 			return
 		if self._abort_all_for_this_session == True:
+			# self._logger.info("_abort_all_for_this_session_destroyNotif")
 			self._abort_timer_temp.cancel()
 			self._abort_timer_temp = None
 			self._destroyNotif()
@@ -276,34 +287,39 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 	
 	def _temperature_task(self):
-		if self._abort_all_for_this_session == True:
-			self._abort_timer_temp.cancel()
-			self._abort_timer_temp = None
-			self._destroyNotif()
-			return
-		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
-			self._abort_timer_temp.cancel()
-			self._abort_timer_temp = None
-			self._destroyNotif()
-			return
-		self._temp = self._printer.get_current_temperatures()
-		tester = 0;
-		number = 0;
-		self._wait_temp = ""
-		self._typeNotifShow = "waittemp"
-		for tool in self._temp.keys():
-			if not tool == "bed":
-				if self._temp[tool]["actual"] <= self.temperatureValue:
-					tester += 1
-				number += 1
-				self._wait_temp = " - " + str(tool) + ": " + str(self._temp[tool]["actual"]) + "/" + str(self.temperatureValue) + "°C\n"
-		if tester == number:
-			self._abort_timer_temp.cancel()
-			self._abort_timer_temp = None
-			self._timer_start()
-		else:
-			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
-
+		try:
+			if self._abort_all_for_this_session == True:
+				self._abort_timer_temp.cancel()
+				self._abort_timer_temp = None
+				self._destroyNotif()
+				return
+			if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+				self._abort_timer_temp.cancel()
+				self._abort_timer_temp = None
+				self._destroyNotif()
+				return
+			self._temp = self._printer.get_current_temperatures()
+			self._logger.info(str(self._temp))
+			tester = 0;
+			number = 0;
+			self._wait_temp = ""
+			self._typeNotifShow = "waittemp"
+			for tool in self._temp.keys():
+				if not tool == "bed" and not tool == "chamber":
+					if self._temp[tool]["actual"] is None:
+						continue
+					if self._temp[tool]["actual"] <= self.temperatureValue:
+						tester += 1
+					number += 1
+					self._wait_temp = " - " + str(tool) + ": " + str(self._temp[tool]["actual"]) + "/" + str(self.temperatureValue) + "°C\n"
+			if tester == number:
+				self._abort_timer_temp.cancel()
+				self._abort_timer_temp = None
+				self._timer_start()
+			else:
+				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+		except:
+			self._logger.error("Failed to connect to call api: %s" % str(traceback.format_exc()))
 	def _timer_start(self):
 		if self._abort_timer is not None:
 			self._destroyNotif()
@@ -394,7 +410,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	def _shutdown_printer_by_API(self):
 		url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
 		headers = {'Content-Type': 'application/json', 'X-Api-Key' : self.api_key_plugin}
-		data = self.api_json_command
+		data = self.api_json_command.encode()
 		self._logger.info("Shutting down printer with API")
 		try:
 			request = urllib2.Request(url, data=data, headers=headers)
@@ -405,8 +421,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			contents = urllib2.urlopen(request, timeout=30, context=ctx).read()
 			self._logger.debug("call response (POST API octoprint): %s" % contents)
 			self._extraCommand()
-		except Exception as e:
-			self._logger.error("Failed to connect to call api: %s" % e.message)
+		except:
+			self._logger.error("Failed to connect to call api: %s" % str(traceback.format_exc()))
 			return
 
 
@@ -415,7 +431,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		if self.api_custom_json_header != "":
 			headers = eval(self.api_custom_json_header)
 		if self.api_custom_PUT == True:
-			data = self.api_custom_body
+			data = self.api_custom_body.encode()
 			self._logger.info("Shutting down printer with API custom (PUT)")
 			try:
 				request = urllib2.Request(self.api_custom_url, data=data, headers=headers)
@@ -548,7 +564,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	)
 
 __plugin_name__ = "Shutdown Printer"
-
+__plugin_pythoncompat__ = ">=2.7,<4"
 def __plugin_load__():
 	global __plugin_implementation__
 	__plugin_implementation__ = shutdownprinterPlugin()
