@@ -136,7 +136,42 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		if self.rememberCheckBox:
 			self._shutdown_printer_enabled = self.lastCheckBoxValue
 		self.shutdown_printer = self._plugin_manager.get_hooks("octoprint.plugin.ShutdownPrinter.shutdown")
+		self.enclosure_screen_hook = self._plugin_manager.get_hooks("octoprint.plugin.external.event")
+		self.hookEnclosureScreenfct()
+	
+	def on_after_startup(self):
+		self.hookEnclosureScreenfct()
 		
+	def hookEnclosureScreenfct(self):
+		self._logger.error("send status off 1")
+		if self.enclosure_screen_hook is not None:
+			for name, hook in self.enclosure_screen_hook.items():
+				# first sd card upload plugin that feels responsible gets the job
+				try:
+					# hook(self.statusManualStop)
+					self._logger.error("send status off 2")
+					hook(dict(shutdownPrinter=dict(offAfterPrintEnd=self._shutdown_printer_enabled)))
+				except Exception as e:
+					self._logger.error("Failed get hook: %s" % e.message)
+		else:
+			self._logger.error("hook does not exist")
+		
+	def hook_event_enclosureScreen(self, data):
+		if "shutdownPrinter" in data:
+			self._logger.info(str(data["shutdownPrinter"]))
+			if "offAfterPrintEnd" in data["shutdownPrinter"]:
+				if self._shutdown_printer_enabled:
+					self._shutdown_printer_enabled = False
+				else:
+					self._shutdown_printer_enabled = True
+				self.lastCheckBoxValue = self._shutdown_printer_enabled
+				if self.rememberCheckBox:
+					self._settings.set_boolean(["lastCheckBoxValue"], self.lastCheckBoxValue)
+					self._settings.save()
+					eventManager().fire(Events.SETTINGS_UPDATED)
+				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+		
+				
 	def get_assets(self):
 		return dict(js=["js/shutdownprinter.js"],css=["css/shutdownprinter.css"])
 
@@ -181,8 +216,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			return make_response(str(self._shutdown_printer_enabled), 200)
 		elif command == "enable":
 			self._shutdown_printer_enabled = True
+			self.hookEnclosureScreenfct()
 		elif command == "disable":
 			self._shutdown_printer_enabled = False
+			self.hookEnclosureScreenfct()
 		elif command == "shutdown":
 			def process():
 					try:
@@ -573,5 +610,6 @@ def __plugin_load__():
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
 		"octoprint.access.permissions": __plugin_implementation__.get_additional_permissions,
-		"octoprint.plugin.smartPlugWithSmokeDetector.event.powersupplyoff": __plugin_implementation__.powersupplyCancelAutoShutdown
+		"octoprint.plugin.smartPlugWithSmokeDetector.event.powersupplyoff": __plugin_implementation__.powersupplyCancelAutoShutdown,
+		"octoprint.plugin.enclosureScreen.event": __plugin_implementation__.hook_event_enclosureScreen,
 	}
