@@ -142,7 +142,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	def on_after_startup(self):
 		self.hookEnclosureScreenfct()
 		
-	def hookEnclosureScreenfct(self):
+	def hookEnclosureScreenfct(self, data=dict()):
 		self._logger.error("send status off 1")
 		if self.enclosure_screen_hook is not None:
 			for name, hook in self.enclosure_screen_hook.items():
@@ -150,7 +150,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				try:
 					# hook(self.statusManualStop)
 					self._logger.error("send status off 2")
-					hook(dict(shutdownPrinter=dict(offAfterPrintEnd=self._shutdown_printer_enabled)))
+					hook(dict(shutdownPrinter=dict(offAfterPrintEnd=self._shutdown_printer_enabled, data=data)))
 				except Exception as e:
 					self._logger.error("Failed get hook: %s" % e.message)
 		else:
@@ -170,7 +170,19 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 					self._settings.save()
 					eventManager().fire(Events.SETTINGS_UPDATED)
 				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
-		
+			if "abort" in data["shutdownPrinter"]:
+				if self._abort_timer is not None:
+					self._abort_timer.cancel()
+					self._abort_timer = None
+				if self._abort_timer_temp is not None:
+					self._abort_timer_temp.cancel()
+					self._abort_timer_temp = None
+				self._timeout_value = None
+				self._typeNotifShow = "destroynotif"
+				self._timeout_value = -1
+				self._wait_temp = ""
+				self._logger.info("Shutdown aborted.")
+				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 				
 	def get_assets(self):
 		return dict(js=["js/shutdownprinter.js"],css=["css/shutdownprinter.css"])
@@ -244,6 +256,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._timeout_value = -1
 			self._wait_temp = ""
 			self._logger.info("Shutdown aborted.")
+			self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+		
 		
 		if command == "enable" or command == "disable":
 			self.lastCheckBoxValue = self._shutdown_printer_enabled
@@ -354,6 +368,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._abort_timer_temp = None
 				self._timer_start()
 			else:
+				self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 		except:
 			self._logger.error("Failed to connect to call api: %s" % str(traceback.format_exc()))
@@ -393,9 +408,11 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		self._timeout_value -= 1
 		self._typeNotifShow = "timeout"
 		self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+		self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
 			self._timeout_value = 0
 			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+			self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 			self._abort_timer.cancel()
 			self._abort_timer = None
 			return
