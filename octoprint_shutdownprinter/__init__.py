@@ -171,6 +171,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 					eventManager().fire(Events.SETTINGS_UPDATED)
 				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 			if "abort" in data["shutdownPrinter"]:
+				self.forcedAbort = True
 				if self._abort_timer is not None:
 					self._abort_timer.cancel()
 					self._abort_timer = None
@@ -245,6 +246,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			thread.start()
 			
 		elif command == "abort":
+			self.forcedAbort = True
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
 				self._abort_timer = None
@@ -320,13 +322,15 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			return
 
 	def _temperature_target(self):
+		self.forcedAbort = False
 		if self._abort_timer_temp is not None:
 			# self._logger.info("_abort_timer_temp_destroyNotif")
 			self._destroyNotif()
 			return
 		if self._abort_all_for_this_session == True:
 			# self._logger.info("_abort_all_for_this_session_destroyNotif")
-			self._abort_timer_temp.cancel()
+			if self._abort_timer_temp is not None:
+				self._abort_timer_temp.cancel()
 			self._abort_timer_temp = None
 			self._destroyNotif()
 			return
@@ -340,12 +344,14 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	def _temperature_task(self):
 		try:
 			if self._abort_all_for_this_session == True:
-				self._abort_timer_temp.cancel()
+				if self._abort_timer_temp is not None:
+					self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
 				self._destroyNotif()
 				return
 			if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
-				self._abort_timer_temp.cancel()
+				if self._abort_timer_temp is not None:
+					self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
 				self._destroyNotif()
 				return
@@ -364,7 +370,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 					number += 1
 					self._wait_temp = " - " + str(tool) + ": " + str(self._temp[tool]["actual"]) + "/" + str(self.temperatureValue) + "°C\n"
 			if tester == number:
-				self._abort_timer_temp.cancel()
+				if self._abort_timer_temp is not None:
+					self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
 				self._timer_start()
 			else:
@@ -397,11 +404,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			return
 		if self._abort_all_for_this_session == True:
 			self._destroyNotif()
-			self._abort_timer.cancel()
+			if self._abort_timer is not None:
+				self._abort_timer.cancel()
 			self._abort_timer = None
 			return
 		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
-			self._abort_timer.cancel()
+			if self._abort_timer is not None:
+				self._abort_timer.cancel()
 			self._abort_timer = None
 			self._destroyNotif()
 			return
@@ -413,22 +422,27 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._timeout_value = 0
 			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
 			self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
-			self._abort_timer.cancel()
+			if self._abort_timer is not None:
+				self._abort_timer.cancel()
 			self._abort_timer = None
 			return
 		if self._timeout_value <= 0:
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
 				self._abort_timer = None
-			self._shutdown_printer()
+			if self.forcedAbort == False:
+				self._shutdown_printer()
 			
 	def _destroyNotif(self):
 		self._timeout_value = -1
 		self._wait_temp = ""
+		self.hookEnclosureScreenfct(dict(type="destroynotif", timeout_value=-1, wait_temp="", time=time.time()))
 		self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type="destroynotif", timeout_value=-1, wait_temp="", time=time.time()))
 			
 	def _shutdown_printer(self):
 		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+			return
+		if self.forcedAbort:
 			return
 		if self._mode_shutdown_gcode == True:
 			self._shutdown_printer_by_gcode()
@@ -462,6 +476,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.info("extraCommand stderr: %s" % stderr.rstrip().strip())
 
 	def _shutdown_printer_by_API(self):
+		if self.forcedAbort:
+			return
 		url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
 		headers = {'Content-Type': 'application/json', 'X-Api-Key' : self.api_key_plugin}
 		data = self.api_json_command.encode()
@@ -481,6 +497,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 
 	def _shutdown_printer_by_API_custom(self):
+		if self.forcedAbort:
+			return
 		headers = {}
 		if self.api_custom_json_header != "":
 			headers = eval(self.api_custom_json_header)
@@ -529,6 +547,8 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				return
 
 	def _shutdown_printer_by_gcode(self):
+			if self.forcedAbort:
+				return
 			self._printer.commands(self.gcode + " " + self.url)
 			self._logger.info("Shutting down printer with command: " + self.gcode + " " + self.url)
 			self._extraCommand()
@@ -536,6 +556,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	def powersupplyCancelAutoShutdown(self, status):
 		self._logger.info("Shutdown aborted status " + str(status))
 		if status == 0:
+			self.forcedAbort = True
 			self._abort_all_for_this_session = True
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
