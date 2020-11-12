@@ -297,6 +297,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
 			self._destroyNotif()
+			self._logger.info("ShutdownPrinter Events.PRINT_STARTED aborted because PRINTING detect")
 						
 		if event not in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
 			return
@@ -359,6 +360,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				if self._abort_timer_temp is not None:
 					self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
+				self._logger.info("ShutdownPrinter _temperature_task aborted because PRINTING detect")
 				self._destroyNotif()
 				return
 			self._temp = self._printer.get_current_temperatures()
@@ -417,18 +419,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
 			self._abort_timer = None
+			self._logger.info("ShutdownPrinter _timer_task aborted because PRINTING detect")
 			self._destroyNotif()
 			return
 		self._timeout_value -= 1
 		self._typeNotifShow = "timeout"
+		self._wait_temp = ""
 		self.sendNotif()
-		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
-			self._timeout_value = 0
-			self.sendNotif()
-			if self._abort_timer is not None:
-				self._abort_timer.cancel()
-			self._abort_timer = None
-			return
 		if self._timeout_value <= 0:
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
@@ -444,8 +441,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			
 	def _shutdown_printer(self):
 		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
-			return
+			time.sleep(2)
+			if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+				self._logger.info("ShutdownPrinter aborted because PRINTING detect")
+				return
 		if self.forcedAbort:
+			self._logger.info("ShutdownPrinter aborted because force abort is True")
 			return
 		if self._mode_shutdown_gcode == True:
 			self._shutdown_printer_by_gcode()
@@ -479,7 +480,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.info("extraCommand stderr: %s" % stderr.rstrip().strip())
 
 	def _shutdown_printer_by_API(self):
+		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+			time.sleep(2)
+			if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+				self._logger.info("ShutdownPrinter by API aborted because PRINTING detect")
+				return
 		if self.forcedAbort:
+			self._logger.info("ShutdownPrinter by API aborted because force abort is True")
 			return
 		url = "http://127.0.0.1:" + str(self.api_plugin_port) + "/api/plugin/" + self.api_plugin_name
 		headers = {'Content-Type': 'application/json', 'X-Api-Key' : self.api_key_plugin}
@@ -500,7 +507,13 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 
 
 	def _shutdown_printer_by_API_custom(self):
+		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+			time.sleep(2)
+			if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+				self._logger.info("ShutdownPrinter by Custom API aborted because PRINTING detect")
+				return
 		if self.forcedAbort:
+			self._logger.info("ShutdownPrinter by Custom API aborted because force abort is True")
 			return
 		headers = {}
 		if self.api_custom_json_header != "":
@@ -550,11 +563,17 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				return
 
 	def _shutdown_printer_by_gcode(self):
-			if self.forcedAbort:
+		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+			time.sleep(2)
+			if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
+				self._logger.info("ShutdownPrinter by GCODE aborted because PRINTING detect")
 				return
-			self._printer.commands(self.gcode + " " + self.url)
-			self._logger.info("Shutting down printer with command: " + self.gcode + " " + self.url)
-			self._extraCommand()
+		if self.forcedAbort:
+			self._logger.info("ShutdownPrinter by GCODE aborted because force abort is True")
+			return
+		self._printer.commands(self.gcode + " " + self.url)
+		self._logger.info("Shutting down printer with command: " + self.gcode + " " + self.url)
+		self._extraCommand()
 	
 	def powersupplyCancelAutoShutdown(self, status):
 		self._logger.info("Shutdown aborted status " + str(status))
