@@ -183,7 +183,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._timeout_value = -1
 				self._wait_temp = ""
 				self._logger.info("Shutdown aborted.")
-				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+				self._destroyNotif()
 				
 	def get_assets(self):
 		return dict(js=["js/shutdownprinter.js"],css=["css/shutdownprinter.css"])
@@ -258,7 +258,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._timeout_value = -1
 			self._wait_temp = ""
 			self._logger.info("Shutdown aborted.")
-			self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+			self._destroyNotif()
 		
 		
 		if command == "enable" or command == "disable":
@@ -269,9 +269,15 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				eventManager().fire(Events.SETTINGS_UPDATED)
 		self._logger.info("eventView")
 		if data["eventView"] == True:
-			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+			self.sendNotif(True)
 		return make_response("ok", 200)
-
+	
+	def sendNotif(self, skipHook = False):
+		if self.forcedAbort == False:
+			if skipHook == False:
+				self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+	
 	def on_event(self, event, payload):
 
 		# if event == Events.CLIENT_OPENED:
@@ -375,8 +381,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._abort_timer_temp = None
 				self._timer_start()
 			else:
-				self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
-				self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+				self.sendNotif()
 		except:
 			self._logger.error("Failed to connect to call api: %s" % str(traceback.format_exc()))
 	def _timer_start(self):
@@ -416,12 +421,10 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			return
 		self._timeout_value -= 1
 		self._typeNotifShow = "timeout"
-		self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
-		self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+		self.sendNotif()
 		if self._printer.get_state_id() == "PRINTING" and self._printer.is_printing() == True:
 			self._timeout_value = 0
-			self._plugin_manager.send_plugin_message(self._identifier, dict(shutdownprinterEnabled=self._shutdown_printer_enabled, type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
-			self.hookEnclosureScreenfct(dict(type=self._typeNotifShow, timeout_value=self._timeout_value, wait_temp=self._wait_temp, time=time.time()))
+			self.sendNotif()
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
 			self._abort_timer = None
