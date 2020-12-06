@@ -237,6 +237,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		elif command == "shutdown":
 			def process():
 					try:
+						self.forcedAbort = False
 						self._shutdown_printer_API_CMD( data["mode"]) #mode 1 = gcode, mode 2 = api, mode 3 = custom api
 					except:
 						# exc_type, exc_obj, exc_tb = sys.exc_info()
