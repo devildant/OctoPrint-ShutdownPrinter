@@ -49,6 +49,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		self.api_plugin_name = ""
 		self.api_plugin_port = 5000
 		self.extraCommand = ""
+		self.forcedAbort = False
 		self.abortTimeout = 0
 		self.temperatureValue = 0
 		self.temperatureTarget = False
