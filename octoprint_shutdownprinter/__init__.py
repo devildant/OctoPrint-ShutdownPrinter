@@ -534,7 +534,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._logger.error("Failed to connect to call api: %s" % e.message)
 				return
 		if self.api_custom_POST == True:
-			data = self.api_custom_body
+			data = self.api_custom_body.encode()
 			self._logger.info("Shutting down printer with API custom (POST)")
 			try:
 				request = urllib2.Request(self.api_custom_url, data=data, headers=headers)
