@@ -290,6 +290,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			return
 		if event == Events.PRINT_STARTED:
 			# self._logger.info("Print started")
+			self.forcedAbort = False
 			self.previousEventIsCancel = False
 			self._abort_all_for_this_session = False
 			if self._abort_timer is not None:
@@ -331,12 +332,11 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			return
 
 	def _temperature_target(self):
-		self.forcedAbort = False
 		if self._abort_timer_temp is not None:
 			# self._logger.info("_abort_timer_temp_destroyNotif")
 			self._destroyNotif()
 			return
-		if self._abort_all_for_this_session == True:
+		if self._abort_all_for_this_session == True or self.forcedAbort == True:
 			# self._logger.info("_abort_all_for_this_session_destroyNotif")
 			if self._abort_timer_temp is not None:
 				self._abort_timer_temp.cancel()
@@ -352,7 +352,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	
 	def _temperature_task(self):
 		try:
-			if self._abort_all_for_this_session == True:
+			if self._abort_all_for_this_session == True or self.forcedAbort == True:
 				if self._abort_timer_temp is not None:
 					self._abort_timer_temp.cancel()
 				self._abort_timer_temp = None
@@ -392,7 +392,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		if self._abort_timer is not None:
 			self._destroyNotif()
 			return
-		if self._abort_all_for_this_session == True:
+		if self._abort_all_for_this_session == True or self.forcedAbort == True:
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
 				self._abort_timer = None
@@ -411,7 +411,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		if self._timeout_value is None:
 			self._destroyNotif()
 			return
-		if self._abort_all_for_this_session == True:
+		if self._abort_all_for_this_session == True or self.forcedAbort == True:
 			self._destroyNotif()
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
