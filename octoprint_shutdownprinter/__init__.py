@@ -33,6 +33,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		self._typeNotifShow = ""
 		self._wait_temp = ""
 		self.previousEventIsCancel = False
+		self.previousEventIsCancelForDeportAction = False
 		self._abort_all_for_this_session = False
 		self.gcode = "M81"
 		self._mode_shutdown_gcode = True
@@ -288,10 +289,18 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		
 		if not self._shutdown_printer_enabled:
 			return
+		if event == Events.PRINTER_STATE_CHANGED:
+			if payload["state_id"] in ["OPERATIONAL", "CLOSED", "ERROR", "CLOSED_WITH_ERROR", "OFFLINE", "UNKNOWN", "NONE"] and self.previousEventIsCancelForDeportAction == True:
+				self.previousEventIsCancelForDeportAction = False
+				if self.printCancelled:
+					self._logger.info("Print cancelled detected, run shutdown timer because status change")
+					self._temperature_target()
+					return
 		if event == Events.PRINT_STARTED:
 			# self._logger.info("Print started")
 			self.forcedAbort = False
 			self.previousEventIsCancel = False
+			self.previousEventIsCancelForDeportAction = False
 			self._abort_all_for_this_session = False
 			if self._abort_timer is not None:
 				self._abort_timer.cancel()
@@ -307,16 +316,17 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		
 			return
 		if event == Events.PRINT_DONE:
-			# self._logger.info("Print done")
+			self._logger.info("Print done, run shutdown")
 			self._temperature_target()
 			return
-		elif event == Events.PRINT_CANCELLED and self.printCancelled:
+		# elif event == Events.PRINT_CANCELLED and self.printCancelled:
 			# self._logger.info("Print cancelled")
-			self.previousEventIsCancel = True
-			self._temperature_target()
-			return
+			# self.previousEventIsCancel = True
+			# self._temperature_target()
+			# return
 		elif event == Events.PRINT_CANCELLED:
-			# self._logger.info("Print cancelled")
+			self._logger.info("Print cancelled detected but no run now, wait printer status change")
+			self.previousEventIsCancelForDeportAction = True
 			self.previousEventIsCancel = True
 			return
 		
@@ -324,7 +334,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			if self.previousEventIsCancel == True:
 				self.previousEventIsCancel = False
 				return;
-			# self._logger.info("Print failed")
+			self._logger.info("Print failed, run shutdown")
 			self._temperature_target()
 			return
 		else:
