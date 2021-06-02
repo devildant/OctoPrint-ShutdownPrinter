@@ -602,9 +602,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._logger.info("Shutdown aborted.")
 			self._destroyNotif()	
 			
-	def emergencyCancelAutoShutdown(self, status):
-		self._logger.info("Emergency shutdown aborted status " + str(status))
-		if status == 1:
+	def emergencyCancelAutoShutdown(self, relayStatus, emergencyStatus):
+		self._logger.info("Emergency shutdown aborted relayStatus " + str(relayStatus) + " emergencyStatus " + str(emergencyStatus))
+		if relayStatus == 1 and emergencyStatus == 1:
 			self.forcedAbort = True
 			self._abort_all_for_this_session = True
 			if self._abort_timer is not None:
