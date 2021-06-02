@@ -600,6 +600,21 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._abort_timer_temp = None
 			self._timeout_value = None
 			self._logger.info("Shutdown aborted.")
+			self._destroyNotif()	
+			
+	def emergencyCancelAutoShutdown(self, status):
+		self._logger.info("Emergency shutdown aborted status " + str(status))
+		if status == 1:
+			self.forcedAbort = True
+			self._abort_all_for_this_session = True
+			if self._abort_timer is not None:
+				self._abort_timer.cancel()
+				self._abort_timer = None
+			if self._abort_timer_temp is not None:
+				self._abort_timer_temp.cancel()
+				self._abort_timer_temp = None
+			self._timeout_value = None
+			self._logger.info("Shutdown aborted.")
 			self._destroyNotif()
 			
 			
@@ -683,5 +698,6 @@ def __plugin_load__():
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
 		"octoprint.access.permissions": __plugin_implementation__.get_additional_permissions,
 		"octoprint.plugin.smartPlugWithSmokeDetector.event.powersupplyoff": __plugin_implementation__.powersupplyCancelAutoShutdown,
+		"octoprint.plugin.smartPlugWithSmokeDetector.event.emergency": __plugin_implementation__.emergencyCancelAutoShutdown,
 		"octoprint.plugin.enclosureScreen.event": __plugin_implementation__.hook_event_enclosureScreen,
 	}
