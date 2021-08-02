@@ -154,7 +154,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 					self._logger.error("send status off 2")
 					hook(dict(shutdownPrinter=dict(offAfterPrintEnd=self._shutdown_printer_enabled, data=data)))
 				except Exception as e:
-					self._logger.error("Failed get hook: %s" % e.message)
+					self._logger.error("Failed get hook: %s" % str(e))
 		else:
 			self._logger.error("hook does not exist")
 		
@@ -482,7 +482,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				try:
 					hook()
 				except Exception as e:
-					self._logger.error("Failed get hook: %s" % e.message)
+					self._logger.error("Failed get hook: %s" % str(e))
 		else:
 					self._logger.error("hook does not exist")
 		if self.extraCommand != "":
@@ -543,7 +543,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._logger.debug("call response (PUT): %s" % contents)
 				self._extraCommand()
 			except Exception as e:
-				self._logger.error("Failed to connect to call api: %s" % e.message)
+				self._logger.error("Failed to connect to call api: %s" % str(e))
 				return
 		if self.api_custom_POST == True:
 			data = self.api_custom_body.encode()
@@ -558,7 +558,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._logger.debug("call response (POST): %s" % contents)
 				self._extraCommand()
 			except Exception as e:
-				self._logger.error("Failed to connect to call api: %s" % e.message)
+				self._logger.error("Failed to connect to call api: %s" % str(e))
 				return
 		elif self.api_custom_GET == True:
 			self._logger.info("Shutting down printer with API custom (GET)")
@@ -571,7 +571,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 				self._logger.debug("call response (GET): %s" % contents)
 				self._extraCommand()
 			except Exception as e:
-				self._logger.error("Failed to connect to call api: %s" % e.message)
+				self._logger.error("Failed to connect to call api: %s" % str(e))
 				return
 
 	def _shutdown_printer_by_gcode(self):
@@ -701,3 +701,5 @@ def __plugin_load__():
 		"octoprint.plugin.smartPlugWithSmokeDetector.event.emergency": __plugin_implementation__.emergencyCancelAutoShutdown,
 		"octoprint.plugin.enclosureScreen.event": __plugin_implementation__.hook_event_enclosureScreen,
 	}
+	
+#touch ui ddef color @main-color: #00B0FF;	
