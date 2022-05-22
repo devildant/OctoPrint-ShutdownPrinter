@@ -382,7 +382,7 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			self._wait_temp = ""
 			self._typeNotifShow = "waittemp"
 			for tool in self._temp.keys():
-				if not tool == "bed" and not tool == "chamber":
+				if not tool == "bed" and not tool == "chamber" and not tool == "W":
 					if self._temp[tool]["actual"] is None:
 						continue
 					if self._temp[tool]["actual"] <= self.temperatureValue:
