@@ -6,13 +6,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OctoPrint-ShutdownPrinter"
-version = "1.0.9"
+version = "1.0.10"
 description = "This plugin work with plugin OctoPrint-TPLinkSmartplug, it send the Gcode M81 with IP after print complete for shutdown printer"
 authors = [
     { name = "devildant", email = "info@example.com" },
 ]
 requires-python = ">=3.7,<4"
-dependencies = []
+dependencies = [
+  "OctoPrint>=1.11.7"
+]
 dynamic = [
     "license",
 ]
