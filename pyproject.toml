@@ -1,0 +1,42 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-ShutdownPrinter"
+version = "1.0.9"
+description = "This plugin work with plugin OctoPrint-TPLinkSmartplug, it send the Gcode M81 with IP after print complete for shutdown printer"
+authors = [
+    { name = "devildant", email = "info@example.com" },
+]
+requires-python = ">=3.7,<4"
+dependencies = []
+dynamic = [
+    "license",
+]
+
+[project.entry-points."octoprint.plugin"]
+shutdownprinter = "octoprint_shutdownprinter"
+
+[project.urls]
+Homepage = "https://github.com/devildant/OctoPrint-ShutdownPrinter"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_shutdownprinter",
+    "octoprint_shutdownprinter.*",
+]
