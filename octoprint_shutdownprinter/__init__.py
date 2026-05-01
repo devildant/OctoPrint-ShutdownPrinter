@@ -196,7 +196,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 			custom_bindings=False,
 			icon="power-off"),
 			dict(type="settings", custom_bindings=False)]
-	    
+	
+	def is_api_protected(self):
+		return True
 
 	def get_api_commands(self):
 		return dict(enable=["eventView"],
