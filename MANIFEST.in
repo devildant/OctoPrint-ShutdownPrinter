@@ -1,1 +1,4 @@
 include README.md
+recursive-include octoprint_shutdownprinter/templates *
+recursive-include octoprint_shutdownprinter/translations *
+recursive-include octoprint_shutdownprinter/static *
