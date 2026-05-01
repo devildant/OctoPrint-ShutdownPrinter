@@ -9,9 +9,9 @@ except (ImportError, RuntimeError):
 import ssl
 import octoprint.plugin
 try:
-	from octoprint.access.permissions import Permissions, ADMIN_GROUP, USER_GROUP
+	from octoprint.access.permissions import Permissions, ADMIN_GROUP
 except (ImportError, RuntimeError):
-	from octoprint.server import current_user, admin_permission, user_permission
+	from octoprint.server import user_permission
 from octoprint.util import RepeatedTimer
 from octoprint.events import eventManager, Events
 from flask import make_response
@@ -216,17 +216,12 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 					dangerous=True)
 				]
 	def on_api_command(self, command, data):
-		# if not user_permission.can():
-			# return make_response("Insufficient rights", 403)
 		try:
 			plugin_permission = Permissions.PLUGIN_SHUTDOWNPRINTER_ADMIN.can()
 		except:
 			plugin_permission = user_permission.can()
 		if not plugin_permission:
 			return make_response("Insufficient rights", 403)
-		# user_id = current_user.get_name()
-		# if not user_id or not admin_permission.can():
-			# return make_response("Insufficient rights", 403)
 		if command == "status":
 			return make_response(str(self._shutdown_printer_enabled), 200)
 		elif command == "enable":
