@@ -190,6 +190,9 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 	def get_assets(self):
 		return dict(js=["js/shutdownprinter.js"],css=["css/shutdownprinter.css"])
 
+	def is_template_autoescaped(self):
+		return True
+
 	def get_template_configs(self):
 		return [dict(type="sidebar",
 			name="Shutdown Printer",
