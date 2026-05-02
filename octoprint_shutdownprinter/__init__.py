@@ -671,22 +671,31 @@ class shutdownprinterPlugin(octoprint.plugin.SettingsPlugin,
 		self.lastCheckBoxValue = self._settings.get_boolean(["lastCheckBoxValue"])
 
 	def get_update_information(self):
+		if not is_octoprint_compatible(">=1.11.7"):
+			return dict(
+					shutdownprinter=dict(
+					displayName="Shutdown Printer",
+					displayVersion=self._plugin_version,
+					type="always_current",
+					current_version=self._plugin_version
+				)
+			)
 		return dict(
-			shutdownprinter=dict(
-			displayName="Shutdown Printer",
-			displayVersion=self._plugin_version,
+				shutdownprinter=dict(
+				displayName="Shutdown Printer",
+				displayVersion=self._plugin_version,
 
-			# version check: github repository
-			type="github_release",
-			user="devildant",
-			repo="OctoPrint-ShutdownPrinter",
-			current=self._plugin_version,
+				# version check: github repository
+				type="github_release",
+				user="devildant",
+				repo="OctoPrint-ShutdownPrinter",
+				current=self._plugin_version,
 
-			# update method: pip w/ dependency links
-			pip="https://github.com/devildant/OctoPrint-ShutdownPrinter/archive/{target_version}.zip"
+				# update method: pip w/ dependency links
+				pip="https://github.com/devildant/OctoPrint-ShutdownPrinter/archive/{target_version}.zip"
+			)
 		)
-	)
-
+        
 __plugin_name__ = "Shutdown Printer"
 __plugin_pythoncompat__ = ">=2.7,<4"
 def __plugin_load__():
